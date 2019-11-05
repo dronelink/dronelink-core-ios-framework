@@ -4,10 +4,6 @@
 [![License](https://img.shields.io/cocoapods/l/DronelinkCore.svg?style=flat)](https://cocoapods.org/pods/DronelinkCore)
 [![Platform](https://img.shields.io/cocoapods/p/DronelinkCore.svg?style=flat)](https://cocoapods.org/pods/DronelinkCore)
 
-## Example
-
-## Requirements
-
 ## Installation
 
 DronelinkCore is available through [CocoaPods](https://cocoapods.org). To install
