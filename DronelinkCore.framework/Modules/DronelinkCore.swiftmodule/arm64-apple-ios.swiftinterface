@@ -1246,7 +1246,7 @@ public class Command {
     get
   }
   final public let id: Swift.String
-  public init(id: Swift.String, name: Swift.String, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, maxAttempts: Swift.Int = 3, attemptTimeout: Foundation.TimeInterval = 3.0, retryDelay: Foundation.TimeInterval = 1.0, retryDelayExponent: Swift.Double = 2.0, succeededDelay: Foundation.TimeInterval? = nil)
+  public init(id: Swift.String, name: Swift.String, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, maxAttempts: Swift.Int = 3, attemptTimeout: Foundation.TimeInterval = 3.0, retryDelay: Foundation.TimeInterval = 1.0, retryDelayExponent: Swift.Double = 2.0)
   @objc deinit
 }
 public class CommandQueue {
@@ -1364,8 +1364,8 @@ public protocol GimbalStateAdapter {
 public class MulticastDelegate<T> {
   public init()
   public func add(_ delegate: T)
-  public func remove(_ delegate: T)
-  public func invoke(_ invocation: (T) -> ())
+  public func remove(_ delegateToRemove: T)
+  public func invoke(_ invocation: (T) -> Swift.Void)
   @objc deinit
 }
 public protocol MissionExecutorDelegate {
@@ -1390,7 +1390,6 @@ public class MissionExecutor {
   public var engaged: Swift.Bool {
     get
   }
-  public var engagement: DronelinkCore.MissionExecutor.Engagement?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
   public func format(formatter: Swift.String, value: Swift.Double?, defaultValue: Swift.String) -> Swift.String
