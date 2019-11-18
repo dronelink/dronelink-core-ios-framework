@@ -1,4 +1,4 @@
-# DronelinkCore
+# DronelinkCore - iOS
 
 [![Version](https://img.shields.io/cocoapods/v/DronelinkCore.svg?style=flat)](https://cocoapods.org/pods/DronelinkCore)
 [![License](https://img.shields.io/cocoapods/l/DronelinkCore.svg?style=flat)](https://cocoapods.org/pods/DronelinkCore)

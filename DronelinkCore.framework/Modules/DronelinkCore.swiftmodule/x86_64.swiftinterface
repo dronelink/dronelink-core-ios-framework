@@ -8,6 +8,12 @@ import JavaScriptCore
 import Swift
 import UIKit
 import os
+public protocol CameraFile {
+  var channel: Swift.UInt { get }
+  var name: Swift.String { get }
+  var size: Swift.Int64 { get }
+  var created: Foundation.Date { get }
+}
 public struct DatedValue<T> {
   public let value: T
   public let date: Foundation.Date
@@ -21,6 +27,8 @@ public protocol DronelinkDelegate {
 public enum DronelinkError : Swift.Error {
   case unregistered
   case kernelUnavailable
+  case kernelInvalid
+  case kernelIncompatible
   case droneSerialNumberUnavailable
   public static func == (a: DronelinkCore.DronelinkError, b: DronelinkCore.DronelinkError) -> Swift.Bool
   public var hashValue: Swift.Int {
@@ -30,6 +38,7 @@ public enum DronelinkError : Swift.Error {
 }
 extension Dronelink {
   public static let shared: DronelinkCore.Dronelink
+  public static let KernelVersionTarget: DronelinkCore.Version
   public static var UnitSystem: DronelinkCore.Mission.UnitSystem
 }
 @objc public class Dronelink : ObjectiveC.NSObject {
@@ -42,7 +51,7 @@ extension Dronelink {
   public func remove(delegate: DronelinkCore.DronelinkDelegate)
   public func enableDevelopmentServer()
   public func register(environmentKey: Swift.String, delegate: DronelinkCore.DronelinkDelegate? = nil)
-  public func install(kernel: Swift.String)
+  public func install(kernel: Swift.String) throws
   public func install(kernel: Foundation.URL) throws
   public func identify(device: DronelinkCore.Device)
   public func identify(user: DronelinkCore.User)
@@ -1228,6 +1237,10 @@ public protocol MissionCameraCommand : DronelinkCore.MissionPayloadCommand {
 }
 public protocol MissionGimbalCommand : DronelinkCore.MissionPayloadCommand {
 }
+public struct Version {
+  public init(major: Swift.Int, minor: Swift.Int, patch: Swift.Int)
+  public init(version: Swift.String)
+}
 public class User {
   public var id: Swift.String
   public var email: Swift.String?
@@ -1280,6 +1293,7 @@ public protocol DroneSessionDelegate {
   func onMotorsChanged(session: DronelinkCore.DroneSession, value: Swift.Bool)
   func onCommandExecuted(session: DronelinkCore.DroneSession, command: DronelinkCore.MissionCommand)
   func onCommandFinished(session: DronelinkCore.DroneSession, command: DronelinkCore.MissionCommand, error: Swift.Error?)
+  func onCameraFileGenerated(session: DronelinkCore.DroneSession, file: DronelinkCore.CameraFile)
 }
 public enum DroneSessionError : Swift.Error {
   case commandTypeUnhandled
@@ -1416,6 +1430,7 @@ extension MissionExecutor : DronelinkCore.DroneSessionDelegate {
   public func onMotorsChanged(session: DronelinkCore.DroneSession, value: Swift.Bool)
   public func onCommandExecuted(session: DronelinkCore.DroneSession, command: DronelinkCore.MissionCommand)
   public func onCommandFinished(session: DronelinkCore.DroneSession, command: DronelinkCore.MissionCommand, error: Swift.Error?)
+  public func onCameraFileGenerated(session: DronelinkCore.DroneSession, file: DronelinkCore.CameraFile)
 }
 extension MissionExecutor {
   public var missionSerialized: Swift.String? {
@@ -1444,6 +1459,9 @@ extension MissionExecutor {
   public func timeElapsed() -> Swift.Double
   public func componentExecutionDuration(componentID: Swift.String? = nil) -> Swift.Double
   public var executingMessageGroups: [DronelinkCore.Mission.MessageGroup] {
+    get
+  }
+  public var assetManifestSerialized: Swift.String? {
     get
   }
 }
@@ -1482,6 +1500,11 @@ extension CLLocationCoordinate2D {
 }
 extension String : Swift.Error {
   public var errorDescription: Swift.String? {
+    get
+  }
+}
+extension Array {
+  public subscript(safeIndex index: Swift.Int) -> Element? {
     get
   }
 }
