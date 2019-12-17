@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.1.2 (swiftlang-1100.0.278 clang-1100.0.33.9)
+// swift-compiler-version: Apple Swift version 5.1.3 (swiftlang-1100.0.282.1 clang-1100.0.33.15)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -51,8 +51,9 @@ extension Dronelink {
   public func remove(delegate: DronelinkCore.DronelinkDelegate)
   public func enableDevelopmentServer()
   public func register(environmentKey: Swift.String, delegate: DronelinkCore.DronelinkDelegate? = nil)
-  public func install(kernel: Swift.String) throws
-  public func install(kernel: Foundation.URL) throws
+  public func install(kernel: Swift.String) throws -> DronelinkCore.Version
+  @discardableResult
+  public func install(kernel: Foundation.URL) throws -> DronelinkCore.Version
   public func identify(device: DronelinkCore.Device)
   public func identify(user: DronelinkCore.User)
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
@@ -1352,6 +1353,7 @@ public protocol DroneStateAdapter {
   var homeLocation: CoreLocation.CLLocation? { get }
   var lastKnownGroundLocation: CoreLocation.CLLocation? { get }
   var takeoffLocation: CoreLocation.CLLocation? { get }
+  var takeoffAltitude: Swift.Double? { get }
   var course: Swift.Double { get }
   var horizontalSpeed: Swift.Double { get }
   var verticalSpeed: Swift.Double { get }
@@ -1404,6 +1406,7 @@ public class MissionExecutor {
   public var engaged: Swift.Bool {
     get
   }
+  public var droneTakeoffAltitudeAlternate: Swift.Double?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
   public func format(formatter: Swift.String, value: Swift.Double?, defaultValue: Swift.String) -> Swift.String
@@ -1453,10 +1456,15 @@ extension MissionExecutor {
   }
   public func estimateTotalTime(componentID: Swift.String? = nil) -> Swift.Double?
   public func estimateSegmentCoordinates(level: Swift.Int? = nil) -> [[DronelinkCore.Mission.GeoCoordinate]]
+  public var takeoffCoordinate: DronelinkCore.Mission.GeoCoordinate? {
+    get
+  }
   public var requiredTakeoffArea: (coordinate: DronelinkCore.Mission.GeoCoordinate, distanceTolerance: DronelinkCore.Mission.DistanceTolerance)? {
     get
   }
-  public func timeElapsed() -> Swift.Double
+  public var timeElapsed: Swift.Double {
+    get
+  }
   public func componentExecutionDuration(componentID: Swift.String? = nil) -> Swift.Double
   public var executingMessageGroups: [DronelinkCore.Mission.MessageGroup] {
     get
