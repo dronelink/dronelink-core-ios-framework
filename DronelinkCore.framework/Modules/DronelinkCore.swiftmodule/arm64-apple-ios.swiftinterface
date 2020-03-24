@@ -26,6 +26,7 @@ public struct DatedValue<T> {
 public class DroneOffsets {
   public var droneYaw: Swift.Double
   public var droneAltitude: Swift.Double
+  public var droneAltitudeReference: Swift.Double?
   public var droneCoordinate: DronelinkCore.Mission.Vector2
   public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
   public var cameraExposureCompensationSteps: Swift.Int
@@ -82,10 +83,11 @@ extension Dronelink {
   public func identify(user: DronelinkCore.User)
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
   public func announce(message: Swift.String)
+  public func createAssetManifest(id: Swift.String? = nil, tags: [Swift.String]? = nil) throws -> DronelinkCore.AssetManifest
   public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil) throws
   public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil) throws
   public func unloadMission()
-  public func load(accountID: Swift.String = UUID().uuidString, missionID: Swift.String = UUID().uuidString, funcID: Swift.String = UUID().uuidString, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil) throws
+  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String = UUID().uuidString, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil) throws
   public func unloadFunc()
   @objc deinit
 }
@@ -99,6 +101,15 @@ public class Device {
   final public let id: Swift.String
   public init(id: Swift.String = UIDevice().identifierForVendor!.uuidString)
   public func asDict(location: CoreLocation.CLLocation? = nil) -> [Swift.String : Any]
+  @objc deinit
+}
+public class AssetManifest {
+  public init(kernel: Swift.String, id: Swift.String? = nil, tags: [Swift.String]? = nil)
+  public func addAsset(key: Swift.String? = nil, descriptors: DronelinkCore.Mission.Descriptors? = nil) -> Swift.Int
+  public func addCameraFile(assetIndex: Swift.Int, cameraFile: DronelinkCore.CameraFile)
+  public var serialized: Swift.String? {
+    get
+  }
   @objc deinit
 }
 public struct Mission {
@@ -284,6 +295,17 @@ public struct Mission {
     case _6400
     case _12800
     case _25600
+    case unknown
+    public typealias RawValue = Swift.String
+    public init?(rawValue: Swift.String)
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum CameraMeteringMode : Swift.String, Swift.Decodable {
+    case center
+    case average
+    case spot
     case unknown
     public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
@@ -586,6 +608,7 @@ public struct Mission {
     case cameraFocus
     case cameraFocusMode
     case cameraISO
+    case cameraMeteringMode
     case cameraMode
     case cameraPhotoAspectRatio
     case cameraPhotoFileFormat
@@ -594,6 +617,7 @@ public struct Mission {
     case cameraSaturation
     case cameraSharpness
     case cameraShutterSpeed
+    case cameraSpotMeteringTarget
     case cameraStartCapture
     case cameraStopCapture
     case cameraStorageLocation
@@ -1155,6 +1179,15 @@ public struct Mission {
     public var iso: DronelinkCore.Mission.CameraISO
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct MeteringModeCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var meteringMode: DronelinkCore.Mission.CameraMeteringMode
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct ModeCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
@@ -1225,6 +1258,15 @@ public struct Mission {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var shutterSpeed: DronelinkCore.Mission.CameraShutterSpeed
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct SpotMeteringTargetCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var spotMeteringTarget: DronelinkCore.Mission.Point2
     public init(from decoder: Swift.Decoder) throws
   }
   public struct StartCaptureCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
@@ -1548,7 +1590,7 @@ public protocol FuncExecutorDelegate {
 }
 public class FuncExecutor {
   final public let environmentKey: Swift.String?
-  final public let accountID: Swift.String
+  final public let metadata: Any?
   final public let missionID: Swift.String
   final public let funcID: Swift.String
   public var descriptors: DronelinkCore.Mission.Descriptors {
@@ -1656,6 +1698,9 @@ extension MissionExecutor {
   }
   public func estimateTotalTime(componentID: Swift.String? = nil) -> Swift.Double?
   public func estimateSegmentCoordinates(level: Swift.Int? = nil) -> [[DronelinkCore.Mission.GeoCoordinate]]
+  public var reengagementCoordinates: [[DronelinkCore.Mission.GeoCoordinate]]? {
+    get
+  }
   public var takeoffCoordinate: DronelinkCore.Mission.GeoCoordinate? {
     get
   }
@@ -1756,6 +1801,9 @@ extension DronelinkCore.Mission.CameraFocusMode : Swift.RawRepresentable {}
 extension DronelinkCore.Mission.CameraISO : Swift.Equatable {}
 extension DronelinkCore.Mission.CameraISO : Swift.Hashable {}
 extension DronelinkCore.Mission.CameraISO : Swift.RawRepresentable {}
+extension DronelinkCore.Mission.CameraMeteringMode : Swift.Equatable {}
+extension DronelinkCore.Mission.CameraMeteringMode : Swift.Hashable {}
+extension DronelinkCore.Mission.CameraMeteringMode : Swift.RawRepresentable {}
 extension DronelinkCore.Mission.CameraMode : Swift.Equatable {}
 extension DronelinkCore.Mission.CameraMode : Swift.Hashable {}
 extension DronelinkCore.Mission.CameraMode : Swift.RawRepresentable {}
