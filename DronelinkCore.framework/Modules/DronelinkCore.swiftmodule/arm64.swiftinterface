@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.1.3 (swiftlang-1100.0.282.1 clang-1100.0.33.15)
+// swift-compiler-version: Apple Swift version 5.2 (swiftlang-1103.0.32.1 clang-1103.0.32.29)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -57,7 +57,7 @@ extension Dronelink {
   public static let KernelVersionTarget: DronelinkCore.Version
   public static var UnitSystem: DronelinkCore.Mission.UnitSystem
 }
-@objc public class Dronelink : ObjectiveC.NSObject {
+@objc @_inheritsConvenienceInitializers public class Dronelink : ObjectiveC.NSObject {
   final public let locationManager: CoreLocation.CLLocationManager
   public var kernelVersion: DronelinkCore.Version? {
     get
@@ -84,15 +84,16 @@ extension Dronelink {
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
   public func announce(message: Swift.String)
   public func createAssetManifest(id: Swift.String? = nil, tags: [Swift.String]? = nil) throws -> DronelinkCore.AssetManifest
-  public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil) throws
-  public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil) throws
+  public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
-  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String = UUID().uuidString, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil) throws
+  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String = UUID().uuidString, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadFunc()
   @objc deinit
 }
 extension Dronelink : DronelinkCore.MissionExecutorDelegate {
-  public func onMissionEstimated(executor: DronelinkCore.MissionExecutor, duration: Foundation.TimeInterval)
+  public func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
+  public func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
   public func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   public func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   public func onMissionDisengaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement, reason: DronelinkCore.Mission.Message)
@@ -579,26 +580,37 @@ public struct Mission {
     }
   }
   public enum CommandType : Swift.String {
+    case droneCollisionAvoidance
     case droneAutoLand
     case droneConnectionFailSafeBehavior
     case droneLandingGearAutomaticMovement
     case droneLandingGearDeploy
     case droneLandingGearRetract
+    case droneLandingProtection
     case droneLightbridgeChannel
     case droneLightbridgeChannelSelectionMode
     case droneLightbridgeFrequencyBand
     case droneLowBatteryWarningThreshold
     case droneMaxAltitude
     case droneMaxDistance
+    case droneMaxDistanceLimitation
     case droneOcuSyncChannel
     case droneOcuSyncChannelSelectionMode
     case droneOcuSyncFrequencyBand
+    case dronePrecisionLanding
     case droneReturnHomeAltitude
     case droneReturnHome
+    case droneReturnHomeObstacleAvoidance
+    case droneReturnHomeRemoteObstacleAvoidance
+    case droneSeriousLowBatteryWarningThreshold
+    case droneSmartReturnHome
+    case droneUpwardsAvoidance
     case droneVelocity
+    case droneVisionAssistedPositioning
     case cameraAEBCount
     case cameraAperture
     case cameraAutoExposureLock
+    case cameraAutoLockGimbal
     case cameraColor
     case cameraContrast
     case cameraExposureCompensation
@@ -608,6 +620,7 @@ public struct Mission {
     case cameraFocus
     case cameraFocusMode
     case cameraISO
+    case cameraMechanicalShutter
     case cameraMeteringMode
     case cameraMode
     case cameraPhotoAspectRatio
@@ -931,6 +944,14 @@ public struct Mission {
     public init(id: Swift.String = "", status: DronelinkCore.Mission.CommandExecutionStatus = .pending, error: Swift.String? = nil)
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct CollisionAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct AutoLandDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
@@ -969,6 +990,14 @@ public struct Mission {
       get
     }
     public var id: Swift.String
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct LandingProtectionDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct LightbridgeChannelDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneLightbridgeCommand {
@@ -1019,6 +1048,14 @@ public struct Mission {
     public var maxDistance: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct MaxDistanceLimitationDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct OcuSyncChannelDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneOcuSyncCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
@@ -1043,12 +1080,12 @@ public struct Mission {
     public var ocuSyncFrequencyBand: DronelinkCore.Mission.DroneOcuSyncFrequencyBand
     public init(from decoder: Swift.Decoder) throws
   }
-  public struct ReturnHomeAltitudeDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+  public struct PrecisionLandingDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
     }
     public var id: Swift.String
-    public var returnHomeAltitude: Swift.Double
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct ReturnHomeDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
@@ -1058,7 +1095,55 @@ public struct Mission {
     public var id: Swift.String
     public init(from decoder: Swift.Decoder) throws
   }
-  public class VelocityDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+  public struct ReturnHomeAltitudeDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var returnHomeAltitude: Swift.Double
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct ReturnHomeObstacleAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct ReturnHomeRemoteObstacleAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct SeriousLowBatteryWarningThresholdDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var seriousLowBatteryWarningThreshold: Swift.Double
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct SmartReturnHomeDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct UpwardsAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand, DronelinkCore.MissionDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  @_hasMissingDesignatedInitializers public class VelocityDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
     }
@@ -1067,6 +1152,14 @@ public struct Mission {
     public var heading: Swift.Double?
     @objc deinit
     required public init(from decoder: Swift.Decoder) throws
+  }
+  public struct VisionAssistedPositioningDroneCommand : Swift.Decodable, DronelinkCore.MissionDroneCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
   }
   public struct AEBCountCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
     public var type: DronelinkCore.Mission.CommandType {
@@ -1087,6 +1180,15 @@ public struct Mission {
     public init(from decoder: Swift.Decoder) throws
   }
   public struct AutoExposureLockCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct AutoLockGimbalCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
     }
@@ -1177,6 +1279,15 @@ public struct Mission {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var iso: DronelinkCore.Mission.CameraISO
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct MechanicalShutterCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct MeteringModeCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
@@ -1393,6 +1504,8 @@ extension MissionCommand {
 }
 public protocol MissionDroneCommand : DronelinkCore.MissionCommand {
 }
+public protocol MissionDroneFlightAssistantCommand : DronelinkCore.MissionCommand {
+}
 public protocol MissionDroneLandingGearCommand : DronelinkCore.MissionCommand {
 }
 public protocol MissionDroneLightbridgeCommand : DronelinkCore.MissionCommand {
@@ -1443,6 +1556,9 @@ public class Command {
   final public let id: Swift.String
   public init(id: Swift.String, name: Swift.String, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, config: DronelinkCore.CommandConfig)
   @objc deinit
+}
+extension Command {
+  public static func conditionallyExecute(_ condition: Swift.Bool, error: Swift.Error? = nil, finished: (Swift.Error?) -> (), execute: () -> Swift.Void)
 }
 public class CommandQueue {
   public init()
@@ -1553,6 +1669,7 @@ public protocol CameraStateAdapter {
   var isCapturingPhotoInterval: Swift.Bool { get }
   var isCapturingVideo: Swift.Bool { get }
   var isCapturing: Swift.Bool { get }
+  var isSDCardInserted: Swift.Bool { get }
   var missionMode: DronelinkCore.Mission.CameraMode { get }
   var missionExposureCompensation: DronelinkCore.Mission.CameraExposureCompensation { get }
 }
@@ -1588,7 +1705,7 @@ public struct RemoteControllerButtonState {
 public protocol FuncExecutorDelegate {
   func onFuncExecuted(executor: DronelinkCore.FuncExecutor)
 }
-public class FuncExecutor {
+@_hasMissingDesignatedInitializers public class FuncExecutor {
   final public let environmentKey: Swift.String?
   final public let metadata: Any?
   final public let missionID: Swift.String
@@ -1630,36 +1747,59 @@ public class MulticastDelegate<T> {
   @objc deinit
 }
 public protocol MissionExecutorDelegate {
-  func onMissionEstimated(executor: DronelinkCore.MissionExecutor, duration: Foundation.TimeInterval)
+  func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
+  func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
   func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   func onMissionDisengaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement, reason: DronelinkCore.Mission.Message)
 }
-public enum MissionExecutorError : Swift.Error {
-  case droneSerialNumberUnavailable
-  public static func == (a: DronelinkCore.MissionExecutorError, b: DronelinkCore.MissionExecutorError) -> Swift.Bool
-  public var hashValue: Swift.Int {
+@_hasMissingDesignatedInitializers public class MissionExecutor {
+  final public let environmentKey: Swift.String?
+  final public let id: Swift.String
+  final public let descriptors: DronelinkCore.Mission.Descriptors
+  final public let referenceCoordinate: DronelinkCore.Mission.GeoCoordinate
+  final public let takeoffCoordinate: DronelinkCore.Mission.GeoCoordinate?
+  public var requiredTakeoffArea: (coordinate: DronelinkCore.Mission.GeoCoordinate, distanceTolerance: DronelinkCore.Mission.DistanceTolerance)?
+  public var elevationsRequired: Swift.Bool
+  public var estimating: Swift.Bool {
     get
   }
-  public func hash(into hasher: inout Swift.Hasher)
-}
-public class MissionExecutor {
-  final public let environmentKey: Swift.String?
-  final public let missionID: Swift.String
-  final public let missionCoordinate: DronelinkCore.Mission.GeoCoordinate
-  final public let missionDescriptors: DronelinkCore.Mission.Descriptors
+  public var estimate: DronelinkCore.MissionExecutor.Estimate? {
+    get
+  }
+  public var estimated: Swift.Bool {
+    get
+  }
+  public var engaging: Swift.Bool {
+    get
+  }
+  public var engagement: DronelinkCore.MissionExecutor.Engagement? {
+    get
+  }
   public var engaged: Swift.Bool {
+    get
+  }
+  public var timeElapsed: Swift.Double {
     get
   }
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
-  public func estimate(droneSession: DronelinkCore.DroneSession? = nil)
+  public func estimate(droneSession: DronelinkCore.DroneSession? = nil, timeRequired: Swift.Bool = true)
   public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Mission.Message]?
   public func disengage(reason: DronelinkCore.Mission.Message)
-  public func engage(droneSession: DronelinkCore.DroneSession) throws
-  public func asDict(content: Swift.Bool) -> [Swift.String : Any]
+  public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Mission.Message) -> ()) throws
+  public func asDict() -> [Swift.String : Any]
   @objc deinit
+}
+extension MissionExecutor {
+  public class Estimate {
+    final public let coordinates: [DronelinkCore.Mission.GeoCoordinate]
+    final public let time: Swift.Double?
+    final public let reengagementCoordinates: [DronelinkCore.Mission.GeoCoordinate]?
+    public init(coordinates: [Any]?, time: Swift.Double?, reengagementCoordinates: [Any]?)
+    @objc deinit
+  }
 }
 extension MissionExecutor {
   public class Engagement {
@@ -1667,7 +1807,7 @@ extension MissionExecutor {
     final public let device: DronelinkCore.Device
     final public let user: DronelinkCore.User?
     final public let droneSession: DronelinkCore.DroneSession
-    public init(device: DronelinkCore.Device, user: DronelinkCore.User?, droneSession: DronelinkCore.DroneSession, controlSession: DronelinkCore.DroneControlSession, backgroundTask: UIKit.UIBackgroundTaskIdentifier)
+    public init(device: DronelinkCore.Device, user: DronelinkCore.User?, droneSession: DronelinkCore.DroneSession, controlSession: DronelinkCore.DroneControlSession?, backgroundTask: UIKit.UIBackgroundTaskIdentifier)
     @objc deinit
   }
 }
@@ -1680,34 +1820,17 @@ extension MissionExecutor : DronelinkCore.DroneSessionDelegate {
   public func onCameraFileGenerated(session: DronelinkCore.DroneSession, file: DronelinkCore.CameraFile)
 }
 extension MissionExecutor {
-  public var missionSerialized: Swift.String? {
-    get
-  }
-  public func missionSerializedAsync(complete: @escaping (Swift.String?) -> ())
+  public func missionSerialized(complete: @escaping (Swift.String?) -> ())
   public var deviceSerialized: Swift.String? {
     get
   }
   public var droneSerialized: Swift.String? {
     get
   }
-  public var status: DronelinkCore.Mission.ComponentExecutionStatus? {
+  public var status: DronelinkCore.Mission.ComponentExecutionStatus {
     get
   }
   public var engagementsCount: Swift.Int {
-    get
-  }
-  public func estimateTotalTime(componentID: Swift.String? = nil) -> Swift.Double?
-  public func estimateSegmentCoordinates(level: Swift.Int? = nil) -> [[DronelinkCore.Mission.GeoCoordinate]]
-  public var reengagementCoordinates: [[DronelinkCore.Mission.GeoCoordinate]]? {
-    get
-  }
-  public var takeoffCoordinate: DronelinkCore.Mission.GeoCoordinate? {
-    get
-  }
-  public var requiredTakeoffArea: (coordinate: DronelinkCore.Mission.GeoCoordinate, distanceTolerance: DronelinkCore.Mission.DistanceTolerance)? {
-    get
-  }
-  public var timeElapsed: Swift.Double {
     get
   }
   public func componentExecutionDuration(componentID: Swift.String? = nil) -> Swift.Double
@@ -1884,5 +2007,3 @@ extension DronelinkCore.Mission.VariableValueType : Swift.Hashable {}
 extension DronelinkCore.Mission.VariableValueType : Swift.RawRepresentable {}
 extension DronelinkCore.DroneSessionError : Swift.Equatable {}
 extension DronelinkCore.DroneSessionError : Swift.Hashable {}
-extension DronelinkCore.MissionExecutorError : Swift.Equatable {}
-extension DronelinkCore.MissionExecutorError : Swift.Hashable {}
