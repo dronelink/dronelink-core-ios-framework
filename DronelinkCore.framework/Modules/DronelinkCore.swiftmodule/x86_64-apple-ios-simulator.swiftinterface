@@ -94,6 +94,7 @@ extension Dronelink {
 extension Dronelink : DronelinkCore.MissionExecutorDelegate {
   public func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
   public func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
+  public func onMissionEngaging(executor: DronelinkCore.MissionExecutor)
   public func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   public func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   public func onMissionDisengaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement, reason: DronelinkCore.Mission.Message)
@@ -1749,6 +1750,7 @@ public class MulticastDelegate<T> {
 public protocol MissionExecutorDelegate {
   func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
   func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
+  func onMissionEngaging(executor: DronelinkCore.MissionExecutor)
   func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement)
   func onMissionDisengaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.MissionExecutor.Engagement, reason: DronelinkCore.Mission.Message)
@@ -1779,9 +1781,6 @@ public protocol MissionExecutorDelegate {
   public var engaged: Swift.Bool {
     get
   }
-  public var timeElapsed: Swift.Double {
-    get
-  }
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
@@ -1791,25 +1790,6 @@ public protocol MissionExecutorDelegate {
   public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Mission.Message) -> ()) throws
   public func asDict() -> [Swift.String : Any]
   @objc deinit
-}
-extension MissionExecutor {
-  public class Estimate {
-    final public let coordinates: [DronelinkCore.Mission.GeoCoordinate]
-    final public let time: Swift.Double?
-    final public let reengagementCoordinates: [DronelinkCore.Mission.GeoCoordinate]?
-    public init(coordinates: [Any]?, time: Swift.Double?, reengagementCoordinates: [Any]?)
-    @objc deinit
-  }
-}
-extension MissionExecutor {
-  public class Engagement {
-    final public let engaged: Foundation.Date
-    final public let device: DronelinkCore.Device
-    final public let user: DronelinkCore.User?
-    final public let droneSession: DronelinkCore.DroneSession
-    public init(device: DronelinkCore.Device, user: DronelinkCore.User?, droneSession: DronelinkCore.DroneSession, controlSession: DronelinkCore.DroneControlSession?, backgroundTask: UIKit.UIBackgroundTaskIdentifier)
-    @objc deinit
-  }
 }
 extension MissionExecutor : DronelinkCore.DroneSessionDelegate {
   public func onInitialized(session: DronelinkCore.DroneSession)
@@ -1830,7 +1810,13 @@ extension MissionExecutor {
   public var status: DronelinkCore.Mission.ComponentExecutionStatus {
     get
   }
-  public var engagementsCount: Swift.Int {
+  public var engagementCount: Swift.Int {
+    get
+  }
+  public var engagementsTimeElapsed: Swift.Double {
+    get
+  }
+  public var executionDuration: Swift.Double {
     get
   }
   public func componentExecutionDuration(componentID: Swift.String? = nil) -> Swift.Double
@@ -1839,6 +1825,25 @@ extension MissionExecutor {
   }
   public var assetManifestSerialized: Swift.String? {
     get
+  }
+}
+extension MissionExecutor {
+  public class Estimate {
+    final public let coordinates: [DronelinkCore.Mission.GeoCoordinate]
+    final public let time: Swift.Double
+    final public let reengagementCoordinates: [DronelinkCore.Mission.GeoCoordinate]?
+    public init(coordinates: [Any]?, time: Swift.Double, reengagementCoordinates: [Any]?)
+    @objc deinit
+  }
+}
+extension MissionExecutor {
+  public class Engagement {
+    final public let engaged: Foundation.Date
+    final public let device: DronelinkCore.Device
+    final public let user: DronelinkCore.User?
+    final public let droneSession: DronelinkCore.DroneSession
+    public init(device: DronelinkCore.Device, user: DronelinkCore.User?, droneSession: DronelinkCore.DroneSession, controlSession: DronelinkCore.DroneControlSession?, backgroundTask: UIKit.UIBackgroundTaskIdentifier)
+    @objc deinit
   }
 }
 extension Float {
