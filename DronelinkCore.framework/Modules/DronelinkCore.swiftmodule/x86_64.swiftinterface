@@ -115,6 +115,16 @@ public class AssetManifest {
   @objc deinit
 }
 public struct Mission {
+  public enum AltitudeSystem : Swift.String, Swift.Decodable {
+    case atl
+    case agl
+    case msl
+    public typealias RawValue = Swift.String
+    public init?(rawValue: Swift.String)
+    public var rawValue: Swift.String {
+      get
+    }
+  }
   public enum CameraAEBCount : Swift.String, Swift.Decodable {
     case _3
     case _5
@@ -771,6 +781,7 @@ public struct Mission {
     }
   }
   public enum VariableValueType : Swift.String, Swift.Decodable {
+    case null
     case boolean
     case number
     case string
@@ -781,15 +792,18 @@ public struct Mission {
       get
     }
   }
-  public struct GeoCoordinate : Swift.Decodable {
-    public var latitude: Swift.Double
-    public var longitude: Swift.Double
-    public var coordinate: CoreLocation.CLLocationCoordinate2D {
+  public enum ZoneShape : Swift.String, Swift.Decodable {
+    case circle
+    case polygon
+    public typealias RawValue = Swift.String
+    public init?(rawValue: Swift.String)
+    public var rawValue: Swift.String {
       get
     }
-    public var location: CoreLocation.CLLocation {
-      get
-    }
+  }
+  public struct Altitude : Swift.Decodable {
+    public var value: Swift.Double
+    public var system: DronelinkCore.Mission.AltitudeSystem
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Descriptors : Swift.Decodable {
@@ -815,10 +829,27 @@ public struct Mission {
   }
   public struct FuncInput : Swift.Decodable {
     public var descriptors: DronelinkCore.Mission.Descriptors
+    public var imageUrl: Swift.String?
     public var variable: DronelinkCore.Mission.Variable
     public var optional: Swift.Bool
     public var enumValues: [Swift.String]?
     public var dynamic: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct GeoCoordinate : Swift.Decodable {
+    public var latitude: Swift.Double
+    public var longitude: Swift.Double
+    public var coordinate: CoreLocation.CLLocationCoordinate2D {
+      get
+    }
+    public var location: CoreLocation.CLLocation {
+      get
+    }
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct GeoSpatial : Swift.Decodable {
+    public var coordinate: DronelinkCore.Mission.GeoCoordinate
+    public var altitude: DronelinkCore.Mission.Altitude
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Message : Swift.Decodable {
@@ -869,6 +900,11 @@ public struct Mission {
     public var yaw: Swift.Double {
       get
     }
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct PlanRestrictionZone : Swift.Decodable {
+    public var descriptors: DronelinkCore.Mission.Descriptors
+    public var zone: DronelinkCore.Mission.Zone
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Point2 : Swift.Decodable {
@@ -934,6 +970,12 @@ public struct Mission {
     public var rotational: Swift.Double {
       get
     }
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct Zone : Swift.Decodable {
+    public var shape: DronelinkCore.Mission.ZoneShape
+    public var minAltitude: DronelinkCore.Mission.Altitude
+    public var maxAltitude: DronelinkCore.Mission.Altitude
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Command {
@@ -1784,7 +1826,7 @@ public protocol MissionExecutorDelegate {
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
-  public func estimate(droneSession: DronelinkCore.DroneSession? = nil, timeRequired: Swift.Bool = true)
+  public func estimate(droneSession: DronelinkCore.DroneSession? = nil, altitudeRequired: Swift.Bool = false, timeRequired: Swift.Bool = true)
   public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Mission.Message]?
   public func disengage(reason: DronelinkCore.Mission.Message)
   public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Mission.Message) -> ()) throws
@@ -1826,13 +1868,17 @@ extension MissionExecutor {
   public var assetManifestSerialized: Swift.String? {
     get
   }
+  public var restrictionZones: [DronelinkCore.Mission.PlanRestrictionZone]? {
+    get
+  }
+  public func restrictionZoneBoundaryCoordinates(index: Swift.Int) -> [DronelinkCore.Mission.GeoCoordinate]?
 }
 extension MissionExecutor {
   public class Estimate {
-    final public let coordinates: [DronelinkCore.Mission.GeoCoordinate]
+    final public let spatials: [DronelinkCore.Mission.GeoSpatial]
     final public let time: Swift.Double
-    final public let reengagementCoordinates: [DronelinkCore.Mission.GeoCoordinate]?
-    public init(coordinates: [Any]?, time: Swift.Double, reengagementCoordinates: [Any]?)
+    final public let reengagementSpatials: [DronelinkCore.Mission.GeoSpatial]?
+    public init(spatials: [Any]?, time: Swift.Double, reengagementSpatials: [Any]?)
     @objc deinit
   }
 }
@@ -1905,6 +1951,9 @@ extension CaseIterable where Self : Swift.Equatable {
 }
 extension DronelinkCore.DronelinkError : Swift.Equatable {}
 extension DronelinkCore.DronelinkError : Swift.Hashable {}
+extension DronelinkCore.Mission.AltitudeSystem : Swift.Equatable {}
+extension DronelinkCore.Mission.AltitudeSystem : Swift.Hashable {}
+extension DronelinkCore.Mission.AltitudeSystem : Swift.RawRepresentable {}
 extension DronelinkCore.Mission.CameraAEBCount : Swift.Equatable {}
 extension DronelinkCore.Mission.CameraAEBCount : Swift.Hashable {}
 extension DronelinkCore.Mission.CameraAEBCount : Swift.RawRepresentable {}
@@ -2010,5 +2059,8 @@ extension DronelinkCore.Mission.UnitSystem : Swift.RawRepresentable {}
 extension DronelinkCore.Mission.VariableValueType : Swift.Equatable {}
 extension DronelinkCore.Mission.VariableValueType : Swift.Hashable {}
 extension DronelinkCore.Mission.VariableValueType : Swift.RawRepresentable {}
+extension DronelinkCore.Mission.ZoneShape : Swift.Equatable {}
+extension DronelinkCore.Mission.ZoneShape : Swift.Hashable {}
+extension DronelinkCore.Mission.ZoneShape : Swift.RawRepresentable {}
 extension DronelinkCore.DroneSessionError : Swift.Equatable {}
 extension DronelinkCore.DroneSessionError : Swift.Hashable {}
