@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.2.2 (swiftlang-1103.0.32.6 clang-1103.0.32.51)
+// swift-compiler-version: Apple Swift version 5.2.4 (swiftlang-1103.0.32.9 clang-1103.0.32.53)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -27,6 +27,7 @@ public class DroneOffsets {
   public var droneYaw: Swift.Double
   public var droneAltitude: Swift.Double
   public var droneAltitudeReference: Swift.Double?
+  public var droneAltitudeContinuity: Swift.Bool
   public var droneCoordinate: DronelinkCore.Mission.Vector2
   public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
   public var cameraExposureCompensationSteps: Swift.Int
@@ -87,7 +88,7 @@ extension Dronelink {
   public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
-  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String = UUID().uuidString, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String? = nil, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadFunc()
   @objc deinit
 }
@@ -825,6 +826,8 @@ public struct Mission {
     public var id: Swift.String
     public var coordinate: DronelinkCore.Mission.GeoCoordinate
     public var descriptors: DronelinkCore.Mission.Descriptors
+    public var dynamicInputs: Swift.String?
+    public var userInterfaceSettings: DronelinkCore.Mission.UserInterfaceSettings?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct FuncInput : Swift.Decodable {
@@ -834,6 +837,11 @@ public struct Mission {
     public var optional: Swift.Bool
     public var enumValues: [Swift.String]?
     public var dynamic: Swift.Bool
+    public var extensions: DronelinkCore.Mission.FuncInputExtensions?
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct FuncInputExtensions : Swift.Decodable {
+    public var droneOffsetsCoordinateReference: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct GeoCoordinate : Swift.Decodable {
@@ -900,6 +908,12 @@ public struct Mission {
     public var yaw: Swift.Double {
       get
     }
+    public static func fromQuaternion(x: Swift.Double, y: Swift.Double, z: Swift.Double, w: Swift.Double) -> DronelinkCore.Mission.Orientation3
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct PlanReengagementRules : Swift.Decodable {
+    public var confirmationMessage: DronelinkCore.Mission.Message?
+    public var confirmationInstructionsImageUrl: Swift.String?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct PlanRestrictionZone : Swift.Decodable {
@@ -916,6 +930,12 @@ public struct Mission {
     public var cgPoint: CoreGraphics.CGPoint {
       get
     }
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct UserInterfaceSettings : Swift.Decodable {
+    public var reticalImageUrl: Swift.String?
+    public var droneOffsetsVisible: Swift.Bool?
+    public var missionDetailsExpanded: Swift.Bool?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Variable : Swift.Decodable {
@@ -1701,6 +1721,7 @@ public protocol DroneStateAdapter {
   var horizontalSpeed: Swift.Double { get }
   var verticalSpeed: Swift.Double { get }
   var altitude: Swift.Double { get }
+  var batteryPercent: Swift.Double? { get }
   var obstacleDistance: Swift.Double? { get }
   var missionOrientation: DronelinkCore.Mission.Orientation3 { get }
 }
@@ -1752,8 +1773,16 @@ public protocol FuncExecutorDelegate {
   final public let environmentKey: Swift.String?
   final public let metadata: Any?
   final public let missionID: Swift.String
-  final public let funcID: Swift.String
+  public var funcID: Swift.String {
+    get
+  }
   public var descriptors: DronelinkCore.Mission.Descriptors {
+    get
+  }
+  public var dynamicInputs: Swift.String? {
+    get
+  }
+  public var userInterfaceSettings: DronelinkCore.Mission.UserInterfaceSettings? {
     get
   }
   public func add(delegate: DronelinkCore.FuncExecutorDelegate)
@@ -1769,6 +1798,7 @@ public protocol FuncExecutorDelegate {
   public func clearValue(index: Swift.Int, arrayFull: Swift.Bool = false)
   public func addNextDynamicInput(droneSession: DronelinkCore.DroneSession?, error: @escaping (Swift.String) -> ())
   public func removeLastDynamicInput()
+  public func addCachedInputs(funcExecutor: DronelinkCore.FuncExecutor)
   @objc deinit
 }
 extension FuncExecutor {
@@ -1779,6 +1809,9 @@ extension FuncExecutor {
     get
   }
   public var missionSerialized: Swift.String? {
+    get
+  }
+  public var funcSerialized: Swift.String? {
     get
   }
 }
@@ -1803,8 +1836,11 @@ public protocol MissionExecutorDelegate {
   final public let descriptors: DronelinkCore.Mission.Descriptors
   final public let referenceCoordinate: DronelinkCore.Mission.GeoCoordinate
   final public let takeoffCoordinate: DronelinkCore.Mission.GeoCoordinate?
-  public var requiredTakeoffArea: (coordinate: DronelinkCore.Mission.GeoCoordinate, distanceTolerance: DronelinkCore.Mission.DistanceTolerance)?
-  public var elevationsRequired: Swift.Bool
+  final public let requiredTakeoffArea: (coordinate: DronelinkCore.Mission.GeoCoordinate, distanceTolerance: DronelinkCore.Mission.DistanceTolerance)?
+  final public let elevationsRequired: Swift.Bool
+  final public let altitudeContinuity: Swift.Bool
+  final public let userInterfaceSettings: DronelinkCore.Mission.UserInterfaceSettings?
+  final public let reengagementRules: DronelinkCore.Mission.PlanReengagementRules
   public var estimating: Swift.Bool {
     get
   }
