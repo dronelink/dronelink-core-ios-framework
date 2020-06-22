@@ -104,6 +104,12 @@ public class Device {
   final public let id: Swift.String
   public init(id: Swift.String = UIDevice().identifierForVendor!.uuidString)
   public func asDict(location: CoreLocation.CLLocation? = nil) -> [Swift.String : Any]
+  public static var modelIdentifier: Swift.String {
+    get
+  }
+  public static var legacy: Swift.Bool {
+    get
+  }
   @objc deinit
 }
 public class AssetManifest {
@@ -1687,11 +1693,12 @@ public protocol DroneSession {
   func remoteControllerState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.RemoteControllerStateAdapter>?
   func cameraState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func gimbalState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.GimbalStateAdapter>?
+  func resetPayloads()
   func close()
 }
 public protocol DroneControlSession {
   var disengageReason: DronelinkCore.Mission.Message? { get }
-  func activate() -> Swift.Bool
+  func activate() -> Swift.Bool?
   func deactivate()
 }
 extension DroneSession {
@@ -1724,6 +1731,8 @@ public protocol DroneStateAdapter {
   var batteryPercent: Swift.Double? { get }
   var obstacleDistance: Swift.Double? { get }
   var missionOrientation: DronelinkCore.Mission.Orientation3 { get }
+  var gpsSatellites: Swift.Int? { get }
+  var signalStrength: Swift.Double? { get }
 }
 public protocol CameraAdapter {
   var model: Swift.String? { get }
@@ -1736,6 +1745,7 @@ public protocol CameraStateAdapter {
   var isSDCardInserted: Swift.Bool { get }
   var missionMode: DronelinkCore.Mission.CameraMode { get }
   var missionExposureCompensation: DronelinkCore.Mission.CameraExposureCompensation { get }
+  var lensDetails: Swift.String? { get }
 }
 public protocol GimbalAdapter {
   var index: Swift.UInt { get }
