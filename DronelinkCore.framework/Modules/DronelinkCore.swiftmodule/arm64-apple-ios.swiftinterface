@@ -652,6 +652,7 @@ public struct Mission {
     case cameraStartCapture
     case cameraStopCapture
     case cameraStorageLocation
+    case cameraVideoCaption
     case cameraVideoFileCompressionStandard
     case cameraVideoFileFormat
     case cameraVideoResolutionFrameRate
@@ -661,6 +662,7 @@ public struct Mission {
     case gimbalMode
     case gimbalOrientation
     case gimbalVelocity
+    case gimbalYawSimultaneousFollow
     public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
     public var rawValue: Swift.String {
@@ -1474,6 +1476,15 @@ public struct Mission {
     public var storageLocation: DronelinkCore.Mission.CameraStorageLocation
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct VideoCaptionCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct VideoFileCompressionStandardCameraCommand : Swift.Decodable, DronelinkCore.MissionCameraCommand {
     public var type: DronelinkCore.Mission.CommandType {
       get
@@ -1556,6 +1567,15 @@ public struct Mission {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var velocity: DronelinkCore.Mission.Velocity3
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct YawSimultaneousFollowGimbalCommand : Swift.Decodable, DronelinkCore.MissionGimbalCommand {
+    public var type: DronelinkCore.Mission.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
 }
@@ -1751,6 +1771,7 @@ public protocol GimbalAdapter {
   var index: Swift.UInt { get }
   func send(velocityCommand: DronelinkCore.Mission.VelocityGimbalCommand, mode: DronelinkCore.Mission.GimbalMode)
   func reset()
+  func fineTune(roll: Swift.Double)
 }
 public protocol GimbalStateAdapter {
   var missionMode: DronelinkCore.Mission.GimbalMode { get }
@@ -1777,6 +1798,7 @@ public struct RemoteControllerButtonState {
   public init(present: Swift.Bool, pressed: Swift.Bool)
 }
 public protocol FuncExecutorDelegate {
+  func onFuncInputsChanged(executor: DronelinkCore.FuncExecutor)
   func onFuncExecuted(executor: DronelinkCore.FuncExecutor)
 }
 @_hasMissingDesignatedInitializers public class FuncExecutor {
@@ -1802,10 +1824,10 @@ public protocol FuncExecutorDelegate {
     get
   }
   public func execute(droneSession: DronelinkCore.DroneSession?, error: @escaping (Swift.String) -> ())
-  public func readValue(index: Swift.Int, formatted: Swift.Bool = false) -> Any?
+  public func readValue(inputIndex: Swift.Int, variableValueIndex: Swift.Int? = nil, formatted: Swift.Bool = false) -> Any?
   public func readValueNumberMeasurementTypeDisplay(index: Swift.Int) -> Swift.String?
   public func writeValue(index: Swift.Int, value: Any?)
-  public func clearValue(index: Swift.Int, arrayFull: Swift.Bool = false)
+  public func clearValue(index: Swift.Int, arrayFull: Swift.Bool = false, arrayIndex: Swift.Int? = nil)
   public func addNextDynamicInput(droneSession: DronelinkCore.DroneSession?, error: @escaping (Swift.String) -> ())
   public func removeLastDynamicInput()
   public func addCachedInputs(funcExecutor: DronelinkCore.FuncExecutor)
@@ -1921,10 +1943,12 @@ extension MissionExecutor {
 }
 extension MissionExecutor {
   public class Estimate {
+    final public let altitudeRequired: Swift.Bool
+    final public let timeRequired: Swift.Bool
     final public let spatials: [DronelinkCore.Mission.GeoSpatial]
     final public let time: Swift.Double
     final public let reengagementSpatials: [DronelinkCore.Mission.GeoSpatial]?
-    public init(spatials: [Any]?, time: Swift.Double, reengagementSpatials: [Any]?)
+    public init(altitudeRequired: Swift.Bool, timeRequired: Swift.Bool, spatials: [Any]?, time: Swift.Double, reengagementSpatials: [Any]?)
     @objc deinit
   }
 }
