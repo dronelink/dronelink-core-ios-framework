@@ -55,8 +55,7 @@ public enum DronelinkError : Swift.Error {
 }
 extension Dronelink {
   public static let shared: DronelinkCore.Dronelink
-  public static let KernelVersionTarget: DronelinkCore.Version
-  public static var UnitSystem: DronelinkCore.Mission.UnitSystem
+  public static let KernelVersionMinimum: DronelinkCore.Version
 }
 @objc @_inheritsConvenienceInitializers public class Dronelink : ObjectiveC.NSObject {
   final public let locationManager: CoreLocation.CLLocationManager
@@ -78,6 +77,10 @@ extension Dronelink {
   public func install(kernel: Swift.String) throws -> DronelinkCore.Version
   @discardableResult
   public func install(kernel: Foundation.URL) throws -> DronelinkCore.Version
+  public var unitSystem: DronelinkCore.Mission.UnitSystem {
+    get
+    set
+  }
   public func format(formatter: Swift.String, value: Any?, defaultValue: Swift.String = "", extraParams: [Any]? = nil) -> Swift.String
   public func formatEnum(name: Swift.String, value: Swift.String?, defaultValue: Swift.String = "") -> Swift.String
   public func identify(device: DronelinkCore.Device)
@@ -1819,6 +1822,10 @@ public protocol FuncExecutorDelegate {
   }
   public func add(delegate: DronelinkCore.FuncExecutorDelegate)
   public func remove(delegate: DronelinkCore.FuncExecutorDelegate)
+  public var unitSystem: DronelinkCore.Mission.UnitSystem {
+    get
+    set
+  }
   public func input(index: Swift.Int) -> DronelinkCore.Mission.FuncInput?
   public var inputCount: Swift.Int {
     get
@@ -1894,6 +1901,10 @@ public protocol MissionExecutorDelegate {
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
+  public var unitSystem: DronelinkCore.Mission.UnitSystem {
+    get
+    set
+  }
   public func estimate(droneSession: DronelinkCore.DroneSession? = nil, altitudeRequired: Swift.Bool = false, timeRequired: Swift.Bool = true)
   public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Mission.Message]?
   public func disengage(reason: DronelinkCore.Mission.Message)
