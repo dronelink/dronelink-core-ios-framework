@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.2.4 (swiftlang-1103.0.32.9 clang-1103.0.32.53)
+// swift-compiler-version: Apple Swift version 5.3 (swiftlang-1200.0.29.2 clang-1200.0.30.1)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -91,7 +91,7 @@ extension Dronelink {
   public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
-  public func load(metadata: Any? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String? = nil, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(metadata: DronelinkCore.FuncExecutorMetadata? = nil, missionID: Swift.String = UUID().uuidString, funcID: Swift.String? = nil, _func: Swift.String, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadFunc()
   @objc deinit
 }
@@ -1804,9 +1804,12 @@ public protocol FuncExecutorDelegate {
   func onFuncInputsChanged(executor: DronelinkCore.FuncExecutor)
   func onFuncExecuted(executor: DronelinkCore.FuncExecutor)
 }
+public protocol FuncExecutorMetadata {
+  func toJSON() -> Swift.String?
+}
 @_hasMissingDesignatedInitializers public class FuncExecutor {
   final public let environmentKey: Swift.String?
-  final public let metadata: Any?
+  final public let metadata: DronelinkCore.FuncExecutorMetadata?
   final public let missionID: Swift.String
   public var funcID: Swift.String {
     get
@@ -1909,7 +1912,7 @@ public protocol MissionExecutorDelegate {
   public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Mission.Message]?
   public func disengage(reason: DronelinkCore.Mission.Message)
   public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Mission.Message) -> ()) throws
-  public func asDict() -> [Swift.String : Any]
+  public func asDict(metadataOnly: Swift.Bool) -> [Swift.String : Any]
   @objc deinit
 }
 extension MissionExecutor : DronelinkCore.DroneSessionDelegate {
