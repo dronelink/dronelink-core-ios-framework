@@ -1,4 +1,0 @@
-framework module DronelinkCore {
-  header "DronelinkCore-Swift.h"
-  requires objc
-}
