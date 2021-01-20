@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.3.1 (swiftlang-1200.0.41 clang-1200.0.32.8)
+// swift-compiler-version: Apple Swift version 5.3.2 (swiftlang-1200.0.45 clang-1200.0.32.28)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -36,6 +36,7 @@ public class DroneOffsets {
 }
 public protocol DronelinkDelegate {
   func onRegistered(error: Swift.String?)
+  func onDroneSessionManagerAdded(manager: DronelinkCore.DroneSessionManager)
   func onMissionLoaded(executor: DronelinkCore.MissionExecutor)
   func onMissionUnloaded(executor: DronelinkCore.MissionExecutor)
   func onFuncLoaded(executor: DronelinkCore.FuncExecutor)
@@ -66,6 +67,12 @@ extension Dronelink {
   public var kernelVersion: DronelinkCore.Version? {
     get
   }
+  public var engaged: Swift.Bool {
+    get
+  }
+  public var executor: Any? {
+    get
+  }
   public var missionExecutor: DronelinkCore.MissionExecutor? {
     get
   }
@@ -76,9 +83,16 @@ extension Dronelink {
     get
   }
   public var droneOffsets: DronelinkCore.DroneOffsets
+  public var droneSessionManagers: [DronelinkCore.DroneSessionManager] {
+    get
+  }
+  public var targetDroneSessionManager: DronelinkCore.DroneSessionManager? {
+    get
+  }
   @objc override dynamic public init()
   public func add(delegate: DronelinkCore.DronelinkDelegate)
   public func remove(delegate: DronelinkCore.DronelinkDelegate)
+  public func add(droneSessionManager: DronelinkCore.DroneSessionManager)
   public func enableDevelopmentServer()
   public func register(environmentKey: Swift.String, delegate: DronelinkCore.DronelinkDelegate? = nil)
   public func install(kernel: Swift.String) throws -> DronelinkCore.Version
@@ -95,9 +109,12 @@ extension Dronelink {
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
   public func announce(message: Swift.String)
   public func createAssetManifest(id: Swift.String? = nil, tags: [Swift.String]? = nil) throws -> DronelinkCore.AssetManifest
+  public var statusMessages: [DronelinkCore.Kernel.Message]? {
+    get
+  }
   public func unload()
-  public func load(mission: Swift.String, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
-  public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, droneSession: DronelinkCore.DroneSession? = nil, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(mission: Swift.String, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
   public func load(id: Swift.String? = nil, _func: Swift.String, missionID: Swift.String = UUID().uuidString, modeID: Swift.String = UUID().uuidString, metadata: DronelinkCore.FuncExecutorMetadata? = nil, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadFunc()
@@ -253,6 +270,43 @@ public struct Version {
   public init(major: Swift.Int, minor: Swift.Int, patch: Swift.Int)
   public init(version: Swift.String)
 }
+public struct RTKConfigurationRecord {
+  public var enabled: Swift.Bool
+  public let autoConnect: Swift.Bool
+  public let serverAddress: Swift.String?
+  public let port: Swift.Int?
+  public let mountPoint: Swift.String?
+  public let userName: Swift.String?
+  public let password: Swift.String?
+  public init(enabled: Swift.Bool, autoConnect: Swift.Bool, serverAddress: Swift.String?, port: Swift.Int?, mountPoint: Swift.String?, userName: Swift.String?, password: Swift.String?)
+}
+public enum NetworkRTKStatus : Swift.Int {
+  case notSupported
+  case disabled
+  case connecting
+  case connected
+  case error
+  case timeout
+  public typealias RawValue = Swift.Int
+  public init?(rawValue: Swift.Int)
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public struct RTKState {
+  public let networkRTKEnabled: Swift.Bool
+  public let networkRTKConnected: Swift.Bool
+  public let networkRTKStatus: DronelinkCore.NetworkRTKStatus
+  public let networkServiceStateText: Swift.String
+  public let configurationStatus: Swift.String
+  public init(networkRTKEnabled: Swift.Bool, networkRTKConnected: Swift.Bool, networkRTKStatus: DronelinkCore.NetworkRTKStatus, networkServiceStateText: Swift.String, configurationStatus: Swift.String)
+}
+public protocol RTKManager {
+  func addUpdateListner(key: Swift.String, closure: @escaping (DronelinkCore.RTKState) -> Swift.Void)
+  func removeUpdateListner(key: Swift.String)
+  var configuration: DronelinkCore.RTKConfigurationRecord? { get }
+  func set(configuration: DronelinkCore.RTKConfigurationRecord)
+}
 public class User {
   public var id: Swift.String
   public var email: Swift.String?
@@ -308,6 +362,7 @@ public protocol DroneSessionManager {
   func add(delegate: DronelinkCore.DroneSessionManagerDelegate)
   func remove(delegate: DronelinkCore.DroneSessionManagerDelegate)
   var session: DronelinkCore.DroneSession? { get }
+  var statusMessages: [DronelinkCore.Kernel.Message]? { get }
 }
 public protocol DroneSessionDelegate {
   func onInitialized(session: DronelinkCore.DroneSession)
@@ -374,6 +429,8 @@ public protocol DroneAdapter {
   func startLanding(finished: DronelinkCore.CommandFinished?)
 }
 public protocol DroneStateAdapter {
+  var statusMessages: [DronelinkCore.Kernel.Message]? { get }
+  var mode: Swift.String? { get }
   var isFlying: Swift.Bool { get }
   var location: CoreLocation.CLLocation? { get }
   var homeLocation: CoreLocation.CLLocation? { get }
@@ -385,22 +442,37 @@ public protocol DroneStateAdapter {
   var verticalSpeed: Swift.Double { get }
   var altitude: Swift.Double { get }
   var batteryPercent: Swift.Double? { get }
+  var lowBatteryThreshold: Swift.Double? { get }
   var obstacleDistance: Swift.Double? { get }
   var orientation: DronelinkCore.Kernel.Orientation3 { get }
   var gpsSatellites: Swift.Int? { get }
-  var signalStrength: Swift.Double? { get }
+  var gpsSignalStrength: Swift.Double? { get }
+  var downlinkSignalStrength: Swift.Double? { get }
+  var uplinkSignalStrength: Swift.Double? { get }
 }
 public protocol CameraAdapter {
   var model: Swift.String? { get }
   var index: Swift.UInt { get }
 }
 public protocol CameraStateAdapter {
+  var isBusy: Swift.Bool { get }
+  var isCapturing: Swift.Bool { get }
   var isCapturingPhotoInterval: Swift.Bool { get }
   var isCapturingVideo: Swift.Bool { get }
-  var isCapturing: Swift.Bool { get }
+  var isCapturingContinuous: Swift.Bool { get }
   var isSDCardInserted: Swift.Bool { get }
+  var storageLocation: DronelinkCore.Kernel.CameraStorageLocation { get }
   var mode: DronelinkCore.Kernel.CameraMode { get }
+  var photoMode: DronelinkCore.Kernel.CameraPhotoMode? { get }
+  var photoInterval: Swift.Int? { get }
+  var burstCount: DronelinkCore.Kernel.CameraBurstCount? { get }
+  var aebCount: DronelinkCore.Kernel.CameraAEBCount? { get }
+  var currentVideoTime: Swift.Double? { get }
   var exposureCompensation: DronelinkCore.Kernel.CameraExposureCompensation { get }
+  var iso: DronelinkCore.Kernel.CameraISO { get }
+  var shutterSpeed: DronelinkCore.Kernel.CameraShutterSpeed { get }
+  var aperture: DronelinkCore.Kernel.CameraAperture { get }
+  var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
   var lensDetails: Swift.String? { get }
 }
 public protocol GimbalAdapter {
@@ -584,6 +656,21 @@ public struct Kernel {
     case _3
     case _5
     case _7
+    case unknown
+    public typealias RawValue = Swift.String
+    public init?(rawValue: Swift.String)
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum CameraBurstCount : Swift.String, Swift.Decodable {
+    case _2
+    case _3
+    case _5
+    case _7
+    case _10
+    case _14
+    case continuous
     case unknown
     public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
@@ -1105,6 +1192,7 @@ public struct Kernel {
     case cameraMechanicalShutter
     case cameraMeteringMode
     case cameraMode
+    case unitSystem
     case cameraPhotoAspectRatio
     case cameraPhotoFileFormat
     case cameraPhotoInterval
@@ -1229,6 +1317,7 @@ public struct Kernel {
     case warning
     case danger
     case error
+    public func compare(to: DronelinkCore.Kernel.MessageLevel) -> Swift.Int
     public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
     public var rawValue: Swift.String {
@@ -1295,6 +1384,12 @@ public struct Kernel {
     public var vertical: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct Engagement : Swift.Decodable {
+    public var executeIntervalTarget: Swift.Double
+    public var executeIntervalMax: Swift.Double
+    public var executeDelayStrikesMax: Swift.Int
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct Func : Swift.Decodable {
     public var id: Swift.String
     public var coordinate: DronelinkCore.Kernel.GeoCoordinate
@@ -1341,6 +1436,7 @@ public struct Kernel {
     public var details: Swift.String?
     public var level: DronelinkCore.Kernel.MessageLevel
     public init(title: Swift.String, details: Swift.String? = nil, level: DronelinkCore.Kernel.MessageLevel = MessageLevel.info)
+    public init?(title: Swift.String, details: Swift.String? = nil, level: DronelinkCore.Kernel.MessageLevel?)
     public var display: Swift.String {
       get
     }
@@ -1899,6 +1995,17 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var mode: DronelinkCore.Kernel.CameraMode
+    public init()
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct UnitSystemCommand : Swift.Decodable, DronelinkCore.KernelUnitSystemCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var unit: DronelinkCore.Kernel.UnitSystem
+    public init()
     public init(from decoder: Swift.Decoder) throws
   }
   public struct PhotoAspectRatioCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -1979,6 +2086,7 @@ public struct Kernel {
     }
     public var id: Swift.String
     public var channel: Swift.UInt
+    public init()
     public init(from decoder: Swift.Decoder) throws
   }
   public struct StopCaptureCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -1987,6 +2095,7 @@ public struct Kernel {
     }
     public var id: Swift.String
     public var channel: Swift.UInt
+    public init()
     public init(from decoder: Swift.Decoder) throws
   }
   public struct StorageLocationCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2137,6 +2246,8 @@ public protocol KernelPayloadCommand : DronelinkCore.KernelCommand {
 }
 public protocol KernelCameraCommand : DronelinkCore.KernelPayloadCommand {
 }
+public protocol KernelUnitSystemCommand : DronelinkCore.KernelPayloadCommand {
+}
 public protocol KernelGimbalCommand : DronelinkCore.KernelPayloadCommand {
 }
 extension Float {
@@ -2198,6 +2309,9 @@ extension CaseIterable where Self : Swift.Equatable {
 }
 extension DronelinkCore.DronelinkError : Swift.Equatable {}
 extension DronelinkCore.DronelinkError : Swift.Hashable {}
+extension DronelinkCore.NetworkRTKStatus : Swift.Equatable {}
+extension DronelinkCore.NetworkRTKStatus : Swift.Hashable {}
+extension DronelinkCore.NetworkRTKStatus : Swift.RawRepresentable {}
 extension DronelinkCore.DroneSessionError : Swift.Equatable {}
 extension DronelinkCore.DroneSessionError : Swift.Hashable {}
 extension DronelinkCore.Kernel.AltitudeSystem : Swift.Equatable {}
@@ -2206,6 +2320,9 @@ extension DronelinkCore.Kernel.AltitudeSystem : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraAEBCount : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraAEBCount : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraAEBCount : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.CameraBurstCount : Swift.Equatable {}
+extension DronelinkCore.Kernel.CameraBurstCount : Swift.Hashable {}
+extension DronelinkCore.Kernel.CameraBurstCount : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraAperture : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraAperture : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraAperture : Swift.RawRepresentable {}
