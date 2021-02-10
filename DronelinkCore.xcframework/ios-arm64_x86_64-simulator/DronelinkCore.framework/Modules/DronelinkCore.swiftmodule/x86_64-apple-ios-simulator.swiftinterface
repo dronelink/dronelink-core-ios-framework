@@ -175,7 +175,7 @@ public protocol ModeExecutorMetadata {
   public var engagement: DronelinkCore.Executor.Engagement? {
     get
   }
-  public var engaged: Swift.Bool {
+  override public var engaged: Swift.Bool {
     get
   }
   public func add(delegate: DronelinkCore.ModeExecutorDelegate)
@@ -208,6 +208,9 @@ public class AssetManifest {
   final public let environmentKey: Swift.String?
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public var id: Swift.String {
+    get
+  }
+  public var engaged: Swift.Bool {
     get
   }
   public var unitSystem: DronelinkCore.Kernel.UnitSystem {
@@ -605,7 +608,7 @@ public protocol MissionExecutorDelegate {
   public var engagement: DronelinkCore.Executor.Engagement? {
     get
   }
-  public var engaged: Swift.Bool {
+  override public var engaged: Swift.Bool {
     get
   }
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
@@ -1540,7 +1543,7 @@ public struct Kernel {
     public init(from decoder: Swift.Decoder) throws
   }
   public struct UserInterfaceSettings : Swift.Decodable {
-    public var reticalImageUrl: Swift.String?
+    public var reticleImageUrl: Swift.String?
     public var droneOffsetsVisible: Swift.Bool?
     public var missionDetailsExpanded: Swift.Bool?
     public init(from decoder: Swift.Decoder) throws
@@ -2086,6 +2089,10 @@ public struct Kernel {
     }
     public var id: Swift.String
     public var channel: Swift.UInt
+    public var config: DronelinkCore.CommandConfig {
+      get
+    }
+    public var verifyFileCreated: Swift.Bool
     public init()
     public init(from decoder: Swift.Decoder) throws
   }
