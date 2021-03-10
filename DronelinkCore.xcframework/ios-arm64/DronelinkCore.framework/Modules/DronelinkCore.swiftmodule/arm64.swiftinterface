@@ -473,9 +473,11 @@ public protocol CameraStateAdapter {
   var currentVideoTime: Swift.Double? { get }
   var exposureCompensation: DronelinkCore.Kernel.CameraExposureCompensation { get }
   var iso: DronelinkCore.Kernel.CameraISO { get }
+  var isoSensitivity: Swift.Int? { get }
   var shutterSpeed: DronelinkCore.Kernel.CameraShutterSpeed { get }
   var aperture: DronelinkCore.Kernel.CameraAperture { get }
   var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
+  var whiteBalanceColorTemperature: Swift.Int? { get }
   var lensDetails: Swift.String? { get }
 }
 public protocol GimbalAdapter {
@@ -535,6 +537,7 @@ public protocol FuncExecutorMetadata {
   public var urls: [Foundation.URL]? {
     get
   }
+  public func mapOverlays(droneSession: DronelinkCore.DroneSession?, error: @escaping (Swift.String) -> ()) -> [DronelinkCore.Kernel.FuncMapOverlay]?
   public func input(index: Swift.Int) -> DronelinkCore.Kernel.FuncInput?
   public var inputCount: Swift.Int {
     get
@@ -1073,6 +1076,7 @@ public struct Kernel {
     case _96
     case _100
     case _120
+    case _240
     case _8dot7
     case unknown
     public typealias RawValue = Swift.String
@@ -1191,6 +1195,7 @@ public struct Kernel {
     case cameraFileIndexMode
     case cameraFocus
     case cameraFocusMode
+    case cameraFocusRing
     case cameraISO
     case cameraMechanicalShutter
     case cameraMeteringMode
@@ -1402,6 +1407,11 @@ public struct Kernel {
     public var userInterfaceSettings: DronelinkCore.Kernel.UserInterfaceSettings?
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct FuncMapOverlay : Swift.Decodable {
+    public var coordinates: [DronelinkCore.Kernel.GeoCoordinate]
+    public var color: Swift.String
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct FuncInput : Swift.Decodable {
     public var descriptors: DronelinkCore.Kernel.Descriptors
     public var imageUrl: Swift.String?
@@ -1604,6 +1614,7 @@ public struct Kernel {
   }
   public struct Zone : Swift.Decodable {
     public var shape: DronelinkCore.Kernel.ZoneShape
+    public var color: Swift.String?
     public var minAltitude: DronelinkCore.Kernel.Altitude
     public var maxAltitude: DronelinkCore.Kernel.Altitude
     public init(from decoder: Swift.Decoder) throws
@@ -1962,6 +1973,15 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var focusMode: DronelinkCore.Kernel.CameraFocusMode
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct FocusRingCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var focusRingPercent: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
   public struct ISOCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
