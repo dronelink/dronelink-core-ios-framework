@@ -320,12 +320,15 @@ public class User {
 }
 public typealias CommandStarted = () -> ()
 public typealias CommandFinished = (Swift.Error?) -> ()
-public struct CommandConfig {
-  public let maxAttempts: Swift.Int
-  public let attemptTimeout: Foundation.TimeInterval
-  public let retryDelay: Foundation.TimeInterval
-  public let retryDelayExponent: Swift.Double
-  public init(maxAttempts: Swift.Int = 3, attemptTimeout: Foundation.TimeInterval = 3.0, retryDelay: Foundation.TimeInterval = 1.0, retryDelayExponent: Swift.Double = 2.0)
+public class CommandConfig {
+  final public let maxAttempts: Swift.Int
+  final public let attemptTimeout: Foundation.TimeInterval
+  final public let retryDelay: Foundation.TimeInterval
+  final public let retryDelayExponent: Swift.Double
+  public var retriesEnabled: ((Swift.Error?) -> Swift.Bool)?
+  public var finishDelay: Foundation.TimeInterval?
+  public init(maxAttempts: Swift.Int = 3, attemptTimeout: Foundation.TimeInterval = 3.0, retryDelay: Foundation.TimeInterval = 1.0, retryDelayExponent: Swift.Double = 2.0, retriesEnabled: ((Swift.Error?) -> Swift.Bool)? = nil, finishDelay: Foundation.TimeInterval? = nil)
+  @objc deinit
 }
 public class Command {
   public var status: DronelinkCore.Kernel.CommandExecutionStatus {
@@ -335,6 +338,7 @@ public class Command {
     get
   }
   final public let id: Swift.String
+  final public let config: DronelinkCore.CommandConfig
   public init(id: Swift.String, name: Swift.String, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, config: DronelinkCore.CommandConfig)
   @objc deinit
 }
