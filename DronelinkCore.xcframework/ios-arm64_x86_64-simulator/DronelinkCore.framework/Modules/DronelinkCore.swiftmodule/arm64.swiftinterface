@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.3.2 (swiftlang-1200.0.45 clang-1200.0.32.28)
+// swift-compiler-version: Apple Swift version 5.4 (swiftlang-1205.0.26.9 clang-1205.0.19.55)
 // swift-module-flags: -target arm64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -51,10 +51,10 @@ public enum DronelinkError : Swift.Error {
   case kernelIncompatible
   case droneSerialNumberUnavailable
   public static func == (a: DronelinkCore.DronelinkError, b: DronelinkCore.DronelinkError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }
-  public func hash(into hasher: inout Swift.Hasher)
 }
 extension Dronelink {
   public static let shared: DronelinkCore.Dronelink
@@ -115,6 +115,7 @@ extension Dronelink {
   public func unload()
   public func load(mission: Swift.String, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func loadCopy(id: Swift.String = UUID().uuidString, mission: Swift.String, delegate: DronelinkCore.MissionExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
   public func load(id: Swift.String? = nil, _func: Swift.String, missionID: Swift.String = UUID().uuidString, modeID: Swift.String = UUID().uuidString, metadata: DronelinkCore.FuncExecutorMetadata? = nil, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadFunc()
@@ -130,12 +131,14 @@ extension Dronelink : CoreLocation.CLLocationManagerDelegate {
 extension Dronelink : DronelinkCore.MissionExecutorDelegate {
   public func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
   public func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
+  public func missionEngageDisallowedReasons(executor: DronelinkCore.MissionExecutor) -> [DronelinkCore.Kernel.Message]?
   public func onMissionEngaging(executor: DronelinkCore.MissionExecutor)
   public func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.Executor.Engagement)
   public func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.Executor.Engagement)
   public func onMissionDisengaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.Executor.Engagement, reason: DronelinkCore.Kernel.Message)
 }
 extension Dronelink : DronelinkCore.ModeExecutorDelegate {
+  public func modeEngageDisallowedReasons(executor: DronelinkCore.ModeExecutor) -> [DronelinkCore.Kernel.Message]?
   public func onModeEngaging(executor: DronelinkCore.ModeExecutor)
   public func onModeEngaged(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement)
   public func onModeExecuted(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement)
@@ -154,6 +157,7 @@ public class Device {
   @objc deinit
 }
 public protocol ModeExecutorDelegate {
+  func modeEngageDisallowedReasons(executor: DronelinkCore.ModeExecutor) -> [DronelinkCore.Kernel.Message]?
   func onModeEngaging(executor: DronelinkCore.ModeExecutor)
   func onModeEngaged(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement)
   func onModeExecuted(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement)
@@ -180,7 +184,8 @@ public protocol ModeExecutorMetadata {
   }
   public func add(delegate: DronelinkCore.ModeExecutorDelegate)
   public func remove(delegate: DronelinkCore.ModeExecutorDelegate)
-  public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Kernel.Message) -> ()) throws
+  public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Kernel.Message]?
+  override public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Kernel.Message) -> ()) throws
   override public func asDict(metadataOnly: Swift.Bool) -> [Swift.String : Any]
   @objc deinit
 }
@@ -217,6 +222,7 @@ public class AssetManifest {
     get
     set
   }
+  public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Kernel.Message) -> ()) throws
   public func disengage(reason: DronelinkCore.Kernel.Message)
   public func asDict(metadataOnly: Swift.Bool) -> [Swift.String : Any]
   @objc deinit
@@ -290,8 +296,8 @@ public enum NetworkRTKStatus : Swift.Int {
   case connected
   case error
   case timeout
-  public typealias RawValue = Swift.Int
   public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
   public var rawValue: Swift.Int {
     get
   }
@@ -368,6 +374,7 @@ public protocol DroneSessionManagerDelegate {
 public protocol DroneSessionManager {
   func add(delegate: DronelinkCore.DroneSessionManagerDelegate)
   func remove(delegate: DronelinkCore.DroneSessionManagerDelegate)
+  func closeSession()
   var session: DronelinkCore.DroneSession? { get }
   var statusMessages: [DronelinkCore.Kernel.Message]? { get }
 }
@@ -382,10 +389,10 @@ public protocol DroneSessionDelegate {
 public enum DroneSessionError : Swift.Error {
   case commandTypeUnhandled
   public static func == (a: DronelinkCore.DroneSessionError, b: DronelinkCore.DroneSessionError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
   }
-  public func hash(into hasher: inout Swift.Hasher)
 }
 public protocol DroneSession {
   var drone: DronelinkCore.DroneAdapter { get }
@@ -483,6 +490,8 @@ public protocol CameraStateAdapter {
   var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
   var whiteBalanceColorTemperature: Swift.Int? { get }
   var lensDetails: Swift.String? { get }
+  var focusRingValue: Swift.Double? { get }
+  var focusRingMax: Swift.Double? { get }
 }
 public protocol GimbalAdapter {
   var index: Swift.UInt { get }
@@ -504,6 +513,7 @@ public protocol RemoteControllerStateAdapter {
   var pauseButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var batteryPercent: Swift.Double { get }
 }
 public protocol FuncExecutorDelegate {
   func onFuncInputsChanged(executor: DronelinkCore.FuncExecutor)
@@ -578,11 +588,13 @@ public class MulticastDelegate<T> {
   public func add(_ delegate: T)
   public func remove(_ delegateToRemove: T)
   public func invoke(_ invocation: (T) -> Swift.Void)
+  public func invoke<R>(_ invocation: (T) -> R?) -> R?
   @objc deinit
 }
 public protocol MissionExecutorDelegate {
   func onMissionEstimating(executor: DronelinkCore.MissionExecutor)
   func onMissionEstimated(executor: DronelinkCore.MissionExecutor, estimate: DronelinkCore.MissionExecutor.Estimate)
+  func missionEngageDisallowedReasons(executor: DronelinkCore.MissionExecutor) -> [DronelinkCore.Kernel.Message]?
   func onMissionEngaging(executor: DronelinkCore.MissionExecutor)
   func onMissionEngaged(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.Executor.Engagement)
   func onMissionExecuted(executor: DronelinkCore.MissionExecutor, engagement: DronelinkCore.Executor.Engagement)
@@ -622,7 +634,7 @@ public protocol MissionExecutorDelegate {
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
   public func estimate(droneSession: DronelinkCore.DroneSession? = nil, altitudeRequired: Swift.Bool = false, timeRequired: Swift.Bool = true)
   public func engageDisallowedReasons(droneSession: DronelinkCore.DroneSession) -> [DronelinkCore.Kernel.Message]?
-  public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Kernel.Message) -> ()) throws
+  override public func engage(droneSession: DronelinkCore.DroneSession, disallowed: @escaping (DronelinkCore.Kernel.Message) -> ()) throws
   override public func asDict(metadataOnly: Swift.Bool) -> [Swift.String : Any]
   @objc deinit
 }
@@ -656,8 +668,8 @@ public struct Kernel {
     case atl
     case agl
     case msl
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -667,8 +679,8 @@ public struct Kernel {
     case _5
     case _7
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -682,8 +694,8 @@ public struct Kernel {
     case _14
     case continuous
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -723,8 +735,8 @@ public struct Kernel {
     case f20
     case f22
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -765,8 +777,8 @@ public struct Kernel {
     case filmI
     case hlg
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -805,13 +817,13 @@ public struct Kernel {
     case p50
     case fixed
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
-    public var rawValue: Swift.String {
+    public typealias AllCases = [DronelinkCore.Kernel.CameraExposureCompensation]
+    public typealias RawValue = Swift.String
+    public static var allCases: [DronelinkCore.Kernel.CameraExposureCompensation] {
       get
     }
-    public typealias AllCases = [DronelinkCore.Kernel.CameraExposureCompensation]
-    public static var allCases: [DronelinkCore.Kernel.CameraExposureCompensation] {
+    public var rawValue: Swift.String {
       get
     }
   }
@@ -821,8 +833,8 @@ public struct Kernel {
     case aperturePriority
     case manual
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -831,8 +843,8 @@ public struct Kernel {
     case reset
     case sequence
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -842,8 +854,8 @@ public struct Kernel {
     case auto
     case autoContinuous
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -860,8 +872,8 @@ public struct Kernel {
     case _12800
     case _25600
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -871,8 +883,8 @@ public struct Kernel {
     case average
     case spot
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -884,19 +896,19 @@ public struct Kernel {
     case download
     case broadcast
     case unknown
+    public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
-    public init?(rawValue: Swift.String)
   }
   public enum CameraPhotoAspectRatio : Swift.String, Swift.Decodable {
     case _4x3
     case _16x9
     case _3x2
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -910,8 +922,8 @@ public struct Kernel {
     case tiff14bitLinearLowTempResolution
     case tiff14bitLinearHighTempResolution
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -932,8 +944,8 @@ public struct Kernel {
     case smart
     case internalAISpotChecking
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1016,8 +1028,8 @@ public struct Kernel {
     case _25
     case _30
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1026,8 +1038,8 @@ public struct Kernel {
     case sdCard
     case _internal
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1036,8 +1048,8 @@ public struct Kernel {
     case h264
     case h265
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1048,8 +1060,8 @@ public struct Kernel {
     case tiffSequence
     case seq
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1059,8 +1071,8 @@ public struct Kernel {
     case narrow
     case wide
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1083,8 +1095,8 @@ public struct Kernel {
     case _240
     case _8dot7
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1094,8 +1106,8 @@ public struct Kernel {
     case hdr
     case slowMotion
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1125,8 +1137,8 @@ public struct Kernel {
     case max
     case noSSDVideo
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1135,8 +1147,8 @@ public struct Kernel {
     case pal
     case ntsc
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1151,8 +1163,8 @@ public struct Kernel {
     case custom
     case neutral
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1228,8 +1240,8 @@ public struct Kernel {
     case gimbalOrientation
     case gimbalVelocity
     case gimbalYawSimultaneousFollow
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1240,11 +1252,11 @@ public struct Kernel {
     case executing
     case succeeded
     case failed
+    public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
-    public init?(rawValue: Swift.String)
   }
   public enum ComponentExecutionStatus : Swift.String, Swift.Decodable {
     case pending
@@ -1254,8 +1266,8 @@ public struct Kernel {
     public var completed: Swift.Bool {
       get
     }
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1265,8 +1277,8 @@ public struct Kernel {
     case returnHome
     case autoLand
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1275,8 +1287,8 @@ public struct Kernel {
     case auto
     case manual
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1286,8 +1298,8 @@ public struct Kernel {
     case _5dot7ghz
     case _5dot8ghz
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1296,8 +1308,8 @@ public struct Kernel {
     case auto
     case manual
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1307,8 +1319,8 @@ public struct Kernel {
     case _5dot8ghz
     case dual
     case unknown
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1318,11 +1330,11 @@ public struct Kernel {
     case fpv
     case yawFollow
     case unknown
+    public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
-    public init?(rawValue: Swift.String)
   }
   public enum MessageLevel : Swift.String, Swift.Decodable {
     case info
@@ -1330,8 +1342,8 @@ public struct Kernel {
     case danger
     case error
     public func compare(to: DronelinkCore.Kernel.MessageLevel) -> Swift.Int
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1340,8 +1352,8 @@ public struct Kernel {
     case none
     case returnHome
     case autoLand
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1349,8 +1361,8 @@ public struct Kernel {
   public enum UnitSystem : Swift.String, Swift.Decodable {
     case metric
     case imperial
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1361,8 +1373,8 @@ public struct Kernel {
     case number
     case string
     case drone
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1370,8 +1382,8 @@ public struct Kernel {
   public enum ZoneShape : Swift.String, Swift.Decodable {
     case circle
     case polygon
-    public typealias RawValue = Swift.String
     public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
       get
     }
@@ -1446,6 +1458,11 @@ public struct Kernel {
     public var altitude: DronelinkCore.Kernel.Altitude
     public var orientation: DronelinkCore.Kernel.Orientation3
     public var velocity: DronelinkCore.Kernel.Velocity6
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct Limits : Swift.Decodable {
+    public var max: Swift.Double
+    public var min: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Message : Swift.Decodable {
@@ -1968,6 +1985,7 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var focusTarget: DronelinkCore.Kernel.Point2
+    public var focusRingPercentLimits: DronelinkCore.Kernel.Limits?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct FocusModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {

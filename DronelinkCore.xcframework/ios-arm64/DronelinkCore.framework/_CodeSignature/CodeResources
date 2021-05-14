@@ -6,11 +6,11 @@
 	<dict>
 		<key>Headers/DronelinkCore-Swift.h</key>
 		<data>
-		Rngp1jLflc7HsENbWafEZY65cOI=
+		rnhSf0HhCo4z8uL6IepUgmw3ahk=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		kARiQgQeDwW+2Vp2UlALkhmQHoU=
+		tbo6djcLQIZMzdD/U/BaIiWal0U=
 		</data>
 		<key>Localizable.strings</key>
 		<data>
@@ -18,27 +18,27 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<data>
-		LrcPJr72ZQ6DUJQIBInSzC+Bu+M=
+		4anYwAMxWTMXjxbQoydkO4NBVdo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<data>
-		8mrBFHQZMqFbrFJgOo0V4YBH1GY=
+		uu9OHwtrP6GySMethajjYPJvOkk=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		D1qUTavS0ps4P//y7gCF5LiSKTc=
+		IY6z6nA3MCZ3wLpkw+QHh9Wcbb0=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftdoc</key>
 		<data>
-		LrcPJr72ZQ6DUJQIBInSzC+Bu+M=
+		4anYwAMxWTMXjxbQoydkO4NBVdo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftinterface</key>
 		<data>
-		8mrBFHQZMqFbrFJgOo0V4YBH1GY=
+		uu9OHwtrP6GySMethajjYPJvOkk=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftmodule</key>
 		<data>
-		D1qUTavS0ps4P//y7gCF5LiSKTc=
+		IY6z6nA3MCZ3wLpkw+QHh9Wcbb0=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -51,7 +51,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			vTOTCktFFHrhC7njWcBqIBwymVT9rkyT5v8hcXVocVo=
+			9mGiZ/E6k3aSoTH80isxMrYqYrGuZomnulZz2cJ8yNs=
 			</data>
 		</dict>
 		<key>Localizable.strings</key>
@@ -65,42 +65,42 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			6B4NxgkpXN1kHBG9aR/3n/3E1ztq3zcaK3I+7+oLNTg=
+			70bmSHMDFKgdTvyQiRvRoCvvTtHc6TFYoYKQ1RrYd38=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			H0V7kXNvdl4rmVaFUEyxQikYLxy0bBprHlj0nSl99A4=
+			sOs6mHUyODTFOAf+LTraexjlzfXxUPKrKrElWeovEPk=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			+7kVCFPF5ca0Wio5ZKKRoxpCvCe26R8iX+3/i9n0IMw=
+			57W79W8fMfw1bgdjFOS8Tq2QX5YPF5NWibImLbexmjQ=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftdoc</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			6B4NxgkpXN1kHBG9aR/3n/3E1ztq3zcaK3I+7+oLNTg=
+			70bmSHMDFKgdTvyQiRvRoCvvTtHc6TFYoYKQ1RrYd38=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			H0V7kXNvdl4rmVaFUEyxQikYLxy0bBprHlj0nSl99A4=
+			sOs6mHUyODTFOAf+LTraexjlzfXxUPKrKrElWeovEPk=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			+7kVCFPF5ca0Wio5ZKKRoxpCvCe26R8iX+3/i9n0IMw=
+			57W79W8fMfw1bgdjFOS8Tq2QX5YPF5NWibImLbexmjQ=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
