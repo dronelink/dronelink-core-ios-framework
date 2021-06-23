@@ -217,6 +217,7 @@ SWIFT_CLASS("_TtC13DronelinkCore9Dronelink")
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
 
+
 @class CLLocationManager;
 @class CLLocation;
 @class CLHeading;
@@ -455,6 +456,7 @@ SWIFT_CLASS("_TtC13DronelinkCore9Dronelink")
 @interface Dronelink : NSObject
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
+
 
 @class CLLocationManager;
 @class CLLocation;

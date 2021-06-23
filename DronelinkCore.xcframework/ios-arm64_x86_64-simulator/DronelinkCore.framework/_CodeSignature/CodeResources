@@ -6,11 +6,11 @@
 	<dict>
 		<key>Headers/DronelinkCore-Swift.h</key>
 		<data>
-		dal60T/8bQfwa8MJpd4aTl7o2Ss=
+		TC5x24/X/z0V6CFds9EbTaHngB4=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		ON/AY6jP7LF9mDXcJxWLVT7D5yU=
+		FT4sA6WtV2Ztu3YObXOZq/JDg9k=
 		</data>
 		<key>Localizable.strings</key>
 		<data>
@@ -22,11 +22,11 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios-simulator.swiftinterface</key>
 		<data>
-		vBMwb9Qm+X6FAlv3zaiytkKwgoA=
+		E1ymh6uuZ1HmIULXsKCaB6hHsdo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule</key>
 		<data>
-		Y96yqpErBQQah2Ont2k6I/z5hdQ=
+		AHrhdo3MzfUhn8SpBYTIhXYpveg=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftdoc</key>
 		<data>
@@ -34,11 +34,11 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftinterface</key>
 		<data>
-		vBMwb9Qm+X6FAlv3zaiytkKwgoA=
+		E1ymh6uuZ1HmIULXsKCaB6hHsdo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftmodule</key>
 		<data>
-		Y96yqpErBQQah2Ont2k6I/z5hdQ=
+		AHrhdo3MzfUhn8SpBYTIhXYpveg=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64-apple-ios-simulator.swiftdoc</key>
 		<data>
@@ -46,11 +46,11 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64-apple-ios-simulator.swiftinterface</key>
 		<data>
-		0FCM60cNY8wg62Q3ZO0gQBJI7oY=
+		ljMVGaDAydBxRqnu+rmfK1pLhZM=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64-apple-ios-simulator.swiftmodule</key>
 		<data>
-		Eus5x4zdo2iv5+8ErUfFA4gC+VE=
+		F6ihTMK3eQ4jzeUqVIyvqCyZ4Uo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64.swiftdoc</key>
 		<data>
@@ -58,11 +58,11 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64.swiftinterface</key>
 		<data>
-		0FCM60cNY8wg62Q3ZO0gQBJI7oY=
+		ljMVGaDAydBxRqnu+rmfK1pLhZM=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64.swiftmodule</key>
 		<data>
-		Eus5x4zdo2iv5+8ErUfFA4gC+VE=
+		F6ihTMK3eQ4jzeUqVIyvqCyZ4Uo=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -75,7 +75,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			nkSqPiWfguxwcJex/cUp4wD8V7ukAD6cR1vGzJ6mCGI=
+			xDF7uENamOrV6wDYNFDtLUxOC68zc6a3Lr8UgXfBAZ0=
 			</data>
 		</dict>
 		<key>Localizable.strings</key>
@@ -96,14 +96,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			svzR34OMNNhN07c5DgSDFAArpd2WafqYfZclBUHvURM=
+			VQFjm5h/UadHNvKJFkpDlo6706gusQxrAqhoBbNIh9k=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios-simulator.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Q3+/OXRH4CH1vCgxx218ShRY2xDdQNEAXQXDBRPHc3Q=
+			dp6i60Ypz/lasuWtlKQ3HRSxCmUEWAq7qBgU3JuQEhM=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftdoc</key>
@@ -117,14 +117,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			svzR34OMNNhN07c5DgSDFAArpd2WafqYfZclBUHvURM=
+			VQFjm5h/UadHNvKJFkpDlo6706gusQxrAqhoBbNIh9k=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Q3+/OXRH4CH1vCgxx218ShRY2xDdQNEAXQXDBRPHc3Q=
+			dp6i60Ypz/lasuWtlKQ3HRSxCmUEWAq7qBgU3JuQEhM=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64-apple-ios-simulator.swiftdoc</key>
@@ -138,14 +138,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			HvWIHp3p9d1tWMiTliLanbs/woJ37DnTsdWCw+gKwuI=
+			Cz68DNQb3S0n9IECsBwQR9hxufre2d8ggTj9bU/wnuM=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64-apple-ios-simulator.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			9yEsQUImsJWaBxNaaFjxRC/S8gEt+cCrTT8xfFyNFUQ=
+			zgB9isl6TU0jNzWK25Dir3FpSCQcL5aRlUA2ocKWwgM=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64.swiftdoc</key>
@@ -159,14 +159,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			HvWIHp3p9d1tWMiTliLanbs/woJ37DnTsdWCw+gKwuI=
+			Cz68DNQb3S0n9IECsBwQR9hxufre2d8ggTj9bU/wnuM=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/x86_64.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			9yEsQUImsJWaBxNaaFjxRC/S8gEt+cCrTT8xfFyNFUQ=
+			zgB9isl6TU0jNzWK25Dir3FpSCQcL5aRlUA2ocKWwgM=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
