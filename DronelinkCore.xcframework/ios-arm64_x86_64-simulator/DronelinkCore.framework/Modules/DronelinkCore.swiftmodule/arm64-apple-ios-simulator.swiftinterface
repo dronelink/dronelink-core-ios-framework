@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.4 (swiftlang-1205.0.26.9 clang-1205.0.19.55)
+// swift-compiler-version: Apple Swift version 5.4.2 (swiftlang-1205.0.28.2 clang-1205.0.19.57)
 // swift-module-flags: -target arm64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -22,18 +22,6 @@ public struct DatedValue<T> {
   public let value: T
   public let date: Foundation.Date
   public init(value: T, date: Foundation.Date = Date())
-}
-public class DroneOffsets {
-  public var droneYaw: Swift.Double
-  public var droneAltitude: Swift.Double
-  public var droneAltitudeReference: Swift.Double?
-  public var droneAltitudeContinuity: Swift.Bool
-  public var droneCoordinate: DronelinkCore.Kernel.Vector2
-  public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
-  public var cameraExposureCompensationSteps: Swift.Int
-  public init(droneYaw: Swift.Double = 0.0, droneAltitude: Swift.Double = 0.0, droneCoordinate: DronelinkCore.Kernel.Vector2 = Kernel.Vector2(), cameraExposureCompensationSteps: Swift.Int = 0)
-  public func reset()
-  @objc deinit
 }
 public protocol DronelinkDelegate {
   func onRegistered(error: Swift.String?)
@@ -67,6 +55,9 @@ extension Dronelink {
   final public let locationManager: CoreLocation.CLLocationManager
   public var location: DronelinkCore.DatedValue<CoreLocation.CLLocation>?
   public var heading: DronelinkCore.DatedValue<Swift.Double>?
+  public var kernel: Swift.String? {
+    get
+  }
   public var kernelVersion: DronelinkCore.Version? {
     get
   }
@@ -218,6 +209,18 @@ public class AssetManifest {
   public var serialized: Swift.String? {
     get
   }
+  @objc deinit
+}
+public class DroneOffsets {
+  public var droneYaw: Swift.Double
+  public var droneAltitude: Swift.Double
+  public var droneAltitudeReference: Swift.Double?
+  public var droneAltitudeContinuity: Swift.Bool
+  public var droneCoordinate: DronelinkCore.Kernel.Vector2
+  public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
+  public var cameraExposureCompensationSteps: Swift.Int
+  public init(droneYaw: Swift.Double = 0.0, droneAltitude: Swift.Double = 0.0, droneCoordinate: DronelinkCore.Kernel.Vector2 = Kernel.Vector2(), cameraExposureCompensationSteps: Swift.Int = 0)
+  public func reset(droneCoordinateReference: Swift.Bool = true)
   @objc deinit
 }
 @_hasMissingDesignatedInitializers public class Executor {
@@ -2384,6 +2387,11 @@ extension String : Swift.Error {
   public var errorDescription: Swift.String? {
     get
   }
+}
+extension JSValue {
+  public static func decode<T>(object: Any, type: T.Type) -> T? where T : Swift.Decodable
+  public func decode<T>(_ type: T.Type) -> T? where T : Swift.Decodable
+  public func decodeArray<T>(_ initializer: (JavaScriptCore.JSValue) -> T?) -> [T]?
 }
 extension Array {
   public subscript(safeIndex index: Swift.Int) -> Element? {
