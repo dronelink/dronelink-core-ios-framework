@@ -233,6 +233,9 @@ public class DroneOffsets {
   public var engaged: Swift.Bool {
     get
   }
+  public var reengagementSpatials: [DronelinkCore.Kernel.GeoSpatial]? {
+    get
+  }
   public var unitSystem: DronelinkCore.Kernel.UnitSystem {
     get
     set
@@ -646,6 +649,9 @@ public protocol MissionExecutorDelegate {
   override public var engaged: Swift.Bool {
     get
   }
+  public var reengaging: Swift.Bool {
+    get
+  }
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
   public func estimate(droneSession: DronelinkCore.DroneSession? = nil, altitudeRequired: Swift.Bool = false, timeRequired: Swift.Bool = true)
@@ -659,7 +665,10 @@ extension MissionExecutor {
   public var status: DronelinkCore.Kernel.ComponentExecutionStatus {
     get
   }
-  public func componentExecutionDuration(componentID: Swift.String? = nil) -> Swift.Double
+  public func componentExecutionState(componentID: Swift.String? = nil) -> DronelinkCore.Kernel.ComponentExecutionState?
+  public var reengagementSpatial: DronelinkCore.Kernel.GeoSpatial? {
+    get
+  }
   public var assetManifestSerialized: Swift.String? {
     get
   }
@@ -673,6 +682,7 @@ extension MissionExecutor {
 }
 extension MissionExecutor {
   public class Estimate {
+    final public let id: Swift.String
     final public let altitudeRequired: Swift.Bool
     final public let timeRequired: Swift.Bool
     final public let spatials: [DronelinkCore.Kernel.GeoSpatial]
@@ -1428,6 +1438,9 @@ public struct Kernel {
     public func encode(to encoder: Swift.Encoder) throws
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct Datetime : Swift.Decodable {
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct Descriptors : Swift.Decodable {
     public var name: Swift.String?
     public var description: Swift.String?
@@ -1676,11 +1689,24 @@ public struct Kernel {
     public var maxAltitude: DronelinkCore.Kernel.Altitude
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct ComponentExecutionState : Swift.Decodable, DronelinkCore.KernelIdentifiable {
+    public var id: Swift.String
+    public var status: DronelinkCore.Kernel.ComponentExecutionStatus
+    public var progress: Swift.Double
+    public var duration: Swift.Double
+    public var started: DronelinkCore.Kernel.Datetime?
+    public var finished: DronelinkCore.Kernel.Datetime?
+    public var error: Swift.String?
+    public var messages: [DronelinkCore.Kernel.Message]?
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct Command {
   }
   public struct CommandExecutionState : Swift.Decodable, DronelinkCore.KernelIdentifiable {
     public var id: Swift.String
     public var status: DronelinkCore.Kernel.CommandExecutionStatus
+    public var started: DronelinkCore.Kernel.Datetime?
+    public var finished: DronelinkCore.Kernel.Datetime?
     public var error: Swift.String?
     public init(id: Swift.String = "", status: DronelinkCore.Kernel.CommandExecutionStatus = .pending, error: Swift.String? = nil)
     public init(from decoder: Swift.Decoder) throws
