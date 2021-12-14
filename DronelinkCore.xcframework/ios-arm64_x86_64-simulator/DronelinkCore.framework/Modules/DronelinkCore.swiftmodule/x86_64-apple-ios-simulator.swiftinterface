@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.5 (swiftlang-1300.0.31.1 clang-1300.0.29.1)
+// swift-compiler-version: Apple Swift version 5.5.1 (swiftlang-1300.0.31.4 clang-1300.0.29.6)
 // swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -155,9 +155,6 @@ public class Device {
   public static var modelIdentifier: Swift.String {
     get
   }
-  public static var legacy: Swift.Bool {
-    get
-  }
   @objc deinit
 }
 public protocol ModeExecutorDelegate {
@@ -222,7 +219,7 @@ public class DroneOffsets {
   public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
   public var cameraExposureCompensationSteps: Swift.Int
   public init(droneYaw: Swift.Double = 0.0, droneAltitude: Swift.Double = 0.0, droneCoordinate: DronelinkCore.Kernel.Vector2 = Kernel.Vector2(), cameraExposureCompensationSteps: Swift.Int = 0)
-  public func reset(droneCoordinateReference: Swift.Bool = true)
+  public func reset(droneCoordinateReference: Swift.Bool = true, cameraExposureCompensationSteps: Swift.Bool = true)
   @objc deinit
 }
 @_hasMissingDesignatedInitializers public class Executor {
@@ -254,6 +251,7 @@ extension DronelinkCore.Executor : DronelinkCore.DroneSessionDelegate {
   public func onCommandExecuted(session: DronelinkCore.DroneSession, command: DronelinkCore.KernelCommand)
   public func onCommandFinished(session: DronelinkCore.DroneSession, command: DronelinkCore.KernelCommand, error: Swift.Error?)
   public func onCameraFileGenerated(session: DronelinkCore.DroneSession, file: DronelinkCore.CameraFile)
+  public func onVideoFeedSourceUpdated(session: DronelinkCore.DroneSession, channel: Swift.UInt?)
 }
 extension DronelinkCore.Executor {
   public var executableCoordinate: DronelinkCore.Kernel.GeoCoordinate? {
@@ -408,6 +406,7 @@ public protocol DroneSessionDelegate {
   func onCommandExecuted(session: DronelinkCore.DroneSession, command: DronelinkCore.KernelCommand)
   func onCommandFinished(session: DronelinkCore.DroneSession, command: DronelinkCore.KernelCommand, error: Swift.Error?)
   func onCameraFileGenerated(session: DronelinkCore.DroneSession, file: DronelinkCore.CameraFile)
+  func onVideoFeedSourceUpdated(session: DronelinkCore.DroneSession, channel: Swift.UInt?)
 }
 public enum DroneSessionError : Swift.Error {
   case commandTypeUnhandled
@@ -441,6 +440,7 @@ public protocol DroneSession {
   func createControlSession(executionEngine: DronelinkCore.Kernel.ExecutionEngine, executor: DronelinkCore.Executor) -> DronelinkCore.DroneControlSession?
   func remoteControllerState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.RemoteControllerStateAdapter>?
   func cameraState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
+  func cameraState(channel: Swift.UInt, lensIndex: Swift.UInt?) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func gimbalState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.GimbalStateAdapter>?
   func resetPayloads()
   func close()
@@ -460,6 +460,7 @@ public protocol DroneAdapter {
   var cameras: [DronelinkCore.CameraAdapter]? { get }
   var gimbals: [DronelinkCore.GimbalAdapter]? { get }
   func remoteController(channel: Swift.UInt) -> DronelinkCore.RemoteControllerAdapter?
+  func cameraChannel(videoFeedChannel: Swift.UInt?) -> Swift.UInt?
   func camera(channel: Swift.UInt) -> DronelinkCore.CameraAdapter?
   func gimbal(channel: Swift.UInt) -> DronelinkCore.GimbalAdapter?
   func send(velocityCommand: DronelinkCore.Kernel.VelocityDroneCommand?)
@@ -493,6 +494,7 @@ public protocol DroneStateAdapter {
 public protocol CameraAdapter {
   var model: Swift.String? { get }
   var index: Swift.UInt { get }
+  func lensIndex(videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource) -> Swift.UInt
 }
 public protocol CameraStateAdapter {
   var isBusy: Swift.Bool { get }
@@ -501,6 +503,7 @@ public protocol CameraStateAdapter {
   var isCapturingVideo: Swift.Bool { get }
   var isCapturingContinuous: Swift.Bool { get }
   var isSDCardInserted: Swift.Bool { get }
+  var videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource { get }
   var storageLocation: DronelinkCore.Kernel.CameraStorageLocation { get }
   var mode: DronelinkCore.Kernel.CameraMode { get }
   var photoMode: DronelinkCore.Kernel.CameraPhotoMode? { get }
@@ -515,6 +518,7 @@ public protocol CameraStateAdapter {
   var aperture: DronelinkCore.Kernel.CameraAperture { get }
   var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
   var whiteBalanceColorTemperature: Swift.Int? { get }
+  var lensIndex: Swift.UInt { get }
   var lensDetails: Swift.String? { get }
   var focusRingValue: Swift.Double? { get }
   var focusRingMax: Swift.Double? { get }
@@ -559,9 +563,6 @@ public protocol FuncExecutorMetadata {
   public var descriptors: DronelinkCore.Kernel.Descriptors {
     get
   }
-  public var introImageUrl: Swift.String? {
-    get
-  }
   public var dynamicInputs: Swift.String? {
     get
   }
@@ -573,6 +574,9 @@ public protocol FuncExecutorMetadata {
   public var unitSystem: DronelinkCore.Kernel.UnitSystem {
     get
     set
+  }
+  public var introImageUrl: Swift.String? {
+    get
   }
   public var urls: [Foundation.URL]? {
     get
@@ -828,6 +832,18 @@ public struct Kernel {
     case filmH
     case filmI
     case hlg
+    case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum CameraDisplayMode : Swift.String, Swift.Decodable {
+    case visual
+    case thermal
+    case pip
+    case msx
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1205,6 +1221,17 @@ public struct Kernel {
       get
     }
   }
+  public enum CameraVideoStreamSource : Swift.String, Swift.Decodable {
+    case zoom
+    case wide
+    case thermal
+    case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
   public enum CameraWhiteBalancePreset : Swift.String, Swift.Decodable {
     case auto
     case sunny
@@ -1222,6 +1249,7 @@ public struct Kernel {
     }
   }
   public enum CommandType : Swift.String {
+    case droneBeacon
     case droneCollisionAvoidance
     case droneAutoLand
     case droneConnectionFailSafeBehavior
@@ -1240,6 +1268,7 @@ public struct Kernel {
     case droneOcuSyncChannel
     case droneOcuSyncChannelSelectionMode
     case droneOcuSyncFrequencyBand
+    case droneOcuSyncVideoFeedSources
     case dronePrecisionLanding
     case droneReturnHomeObstacleAvoidance
     case droneReturnHomeAltitude
@@ -1248,15 +1277,19 @@ public struct Kernel {
     case droneReturnHomeRemoteObstacleAvoidance
     case droneSeriousLowBatteryWarningThreshold
     case droneSmartReturnHome
+    case droneSpotlight
+    case droneSpotlightBrightness
     case droneUpwardsAvoidance
     case droneVelocity
     case droneVisionAssistedPositioning
+    case remoteControllerTargetGimbalChannel
     case cameraAEBCount
     case cameraAperture
     case cameraAutoExposureLock
     case cameraAutoLockGimbal
     case cameraColor
     case cameraContrast
+    case cameraDisplayMode
     case cameraExposureCompensation
     case cameraExposureCompensationStep
     case cameraExposureMode
@@ -1269,7 +1302,6 @@ public struct Kernel {
     case cameraMechanicalShutter
     case cameraMeteringMode
     case cameraMode
-    case unitSystem
     case cameraPhotoAspectRatio
     case cameraPhotoFileFormat
     case cameraPhotoInterval
@@ -1287,6 +1319,7 @@ public struct Kernel {
     case cameraVideoMode
     case cameraVideoResolutionFrameRate
     case cameraVideoStandard
+    case cameraVideoStreamSource
     case cameraWhiteBalanceCustom
     case cameraWhiteBalancePreset
     case gimbalMode
@@ -1517,6 +1550,23 @@ public struct Kernel {
       get
     }
   }
+  public enum VideoFeedSource : Swift.String, Swift.Decodable {
+    case mainCamera
+    case fpvCamera
+    case lb
+    case ext
+    case hdmi
+    case av
+    case leftCamera
+    case rightCamera
+    case topCamera
+    case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
   public enum ZoneShape : Swift.String, Swift.Decodable {
     case circle
     case polygon
@@ -1634,7 +1684,6 @@ public struct Kernel {
     public var id: Swift.String
     public var coordinate: DronelinkCore.Kernel.GeoCoordinate
     public var descriptors: DronelinkCore.Kernel.Descriptors
-    public var introImageUrl: Swift.String?
     public var dynamicInputs: Swift.String?
     public var userInterfaceSettings: DronelinkCore.Kernel.UserInterfaceSettings?
     public init(from decoder: Swift.Decoder) throws
@@ -1763,6 +1812,7 @@ public struct Kernel {
   public struct Point2 : Swift.Decodable {
     public var x: Swift.Double
     public var y: Swift.Double
+    public init(x: Swift.Double = 0, y: Swift.Double = 0)
     public var vector2: DronelinkCore.Kernel.Vector2 {
       get
     }
@@ -1866,6 +1916,14 @@ public struct Kernel {
     public var finished: DronelinkCore.Kernel.Datetime?
     public var error: Swift.String?
     public init(id: Swift.String = "", status: DronelinkCore.Kernel.CommandExecutionStatus = .pending, error: Swift.String? = nil)
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct BeaconDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneAccessoryCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct CollisionAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
@@ -2012,6 +2070,15 @@ public struct Kernel {
     public var ocuSyncFrequencyBand: DronelinkCore.Kernel.DroneOcuSyncFrequencyBand
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct OcuSyncVideoFeedSourcesDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneOcuSyncCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var ocuSyncVideoFeedSources: [Swift.UInt : DronelinkCore.Kernel.VideoFeedSource]
+    public init(ocuSyncVideoFeedSources: [Swift.UInt : DronelinkCore.Kernel.VideoFeedSource] = [:])
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct PrecisionLandingDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
@@ -2078,6 +2145,22 @@ public struct Kernel {
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct SpotlightDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneAccessoryCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct SpotlightBrightnessDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneAccessoryCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var spotlightBrightness: Swift.Double
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct UpwardsAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
@@ -2102,6 +2185,16 @@ public struct Kernel {
     }
     public var id: Swift.String
     public var enabled: Swift.Bool
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct TargetGimbalChannelRemoteControllerCommand : Swift.Decodable, DronelinkCore.KernelRemoteControllerCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var targetGimbalChannel: Swift.UInt
+    public init(channel: Swift.UInt = 0, targetGimbalChannel: Swift.UInt = 0)
     public init(from decoder: Swift.Decoder) throws
   }
   public struct AEBCountCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2158,6 +2251,17 @@ public struct Kernel {
     public var contrast: Swift.Int8
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct DisplayModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var lensIndex: Swift.Int
+    public var displayMode: DronelinkCore.Kernel.CameraDisplayMode
+    public init(channel: Swift.UInt = 0, lensIndex: Swift.Int = 0, displayMode: DronelinkCore.Kernel.CameraDisplayMode = .visual)
+    public init(from decoder: Swift.Decoder) throws
+  }
   public class ExposureCompensationCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
@@ -2176,7 +2280,7 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var exposureCompensationSteps: Swift.Int
-    public init(exposureCompensationSteps: Swift.Int)
+    public init(channel: Swift.UInt = 0, exposureCompensationSteps: Swift.Int = 1)
     public init(from decoder: Swift.Decoder) throws
   }
   public struct ExposureModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2205,6 +2309,7 @@ public struct Kernel {
     public var channel: Swift.UInt
     public var focusTarget: DronelinkCore.Kernel.Point2
     public var focusRingPercentLimits: DronelinkCore.Kernel.Limits?
+    public init(channel: Swift.UInt = 0, focusTarget: DronelinkCore.Kernel.Point2 = Point2(x: 0.5, y: 0.5))
     public init(from decoder: Swift.Decoder) throws
   }
   public struct FocusModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2214,7 +2319,7 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var focusMode: DronelinkCore.Kernel.CameraFocusMode
-    public init(focusMode: DronelinkCore.Kernel.CameraFocusMode = .auto)
+    public init(channel: Swift.UInt = 0, focusMode: DronelinkCore.Kernel.CameraFocusMode = .auto)
     public init(from decoder: Swift.Decoder) throws
   }
   public struct FocusDistanceCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2270,16 +2375,6 @@ public struct Kernel {
     public var channel: Swift.UInt
     public var mode: DronelinkCore.Kernel.CameraMode
     public init(channel: Swift.UInt = 0, mode: DronelinkCore.Kernel.CameraMode = .photo)
-    public init(from decoder: Swift.Decoder) throws
-  }
-  public struct UnitSystemCommand : Swift.Decodable, DronelinkCore.KernelUnitSystemCommand {
-    public var type: DronelinkCore.Kernel.CommandType {
-      get
-    }
-    public var id: Swift.String
-    public var channel: Swift.UInt
-    public var unit: DronelinkCore.Kernel.UnitSystem
-    public init(unit: DronelinkCore.Kernel.UnitSystem = .metric)
     public init(from decoder: Swift.Decoder) throws
   }
   public struct PhotoAspectRatioCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2442,6 +2537,16 @@ public struct Kernel {
     public var videoStandard: DronelinkCore.Kernel.CameraVideoStandard
     public init(from decoder: Swift.Decoder) throws
   }
+  public struct VideoStreamSourceCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var channel: Swift.UInt
+    public var videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource
+    public init(channel: Swift.UInt = 0, videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource = .wide)
+    public init(from decoder: Swift.Decoder) throws
+  }
   public struct WhiteBalanceCustomCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
@@ -2476,7 +2581,7 @@ public struct Kernel {
     public var id: Swift.String
     public var channel: Swift.UInt
     public var orientation: DronelinkCore.Kernel.Orientation3Optional
-    public init(orientation: DronelinkCore.Kernel.Orientation3Optional = Orientation3Optional())
+    public init(channel: Swift.UInt = 0, orientation: DronelinkCore.Kernel.Orientation3Optional = Orientation3Optional())
     public init(from decoder: Swift.Decoder) throws
   }
   public struct VelocityGimbalCommand : Swift.Decodable, DronelinkCore.KernelGimbalCommand {
@@ -2535,6 +2640,9 @@ extension DronelinkCore.KernelCommand {
 }
 public protocol KernelDroneCommand : DronelinkCore.KernelCommand {
 }
+public protocol KernelRemoteControllerCommand : DronelinkCore.KernelCommand {
+  var channel: Swift.UInt { get }
+}
 public protocol KernelDroneFlightAssistantCommand : DronelinkCore.KernelCommand {
 }
 public protocol KernelDroneLandingGearCommand : DronelinkCore.KernelCommand {
@@ -2543,12 +2651,12 @@ public protocol KernelDroneLightbridgeCommand : DronelinkCore.KernelCommand {
 }
 public protocol KernelDroneOcuSyncCommand : DronelinkCore.KernelCommand {
 }
+public protocol KernelDroneAccessoryCommand : DronelinkCore.KernelCommand {
+}
 public protocol KernelPayloadCommand : DronelinkCore.KernelCommand {
   var channel: Swift.UInt { get }
 }
 public protocol KernelCameraCommand : DronelinkCore.KernelPayloadCommand {
-}
-public protocol KernelUnitSystemCommand : DronelinkCore.KernelPayloadCommand {
 }
 public protocol KernelGimbalCommand : DronelinkCore.KernelPayloadCommand {
 }
@@ -2639,6 +2747,9 @@ extension DronelinkCore.Kernel.CameraCaptureType : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraColor : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraColor : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraColor : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.CameraDisplayMode : Swift.Equatable {}
+extension DronelinkCore.Kernel.CameraDisplayMode : Swift.Hashable {}
+extension DronelinkCore.Kernel.CameraDisplayMode : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraExposureCompensation : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraExposureCompensation : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraExposureCompensation : Swift.RawRepresentable {}
@@ -2696,6 +2807,9 @@ extension DronelinkCore.Kernel.CameraVideoResolution : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraVideoStandard : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraVideoStandard : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraVideoStandard : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.CameraVideoStreamSource : Swift.Equatable {}
+extension DronelinkCore.Kernel.CameraVideoStreamSource : Swift.Hashable {}
+extension DronelinkCore.Kernel.CameraVideoStreamSource : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraWhiteBalancePreset : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraWhiteBalancePreset : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraWhiteBalancePreset : Swift.RawRepresentable {}
@@ -2762,6 +2876,9 @@ extension DronelinkCore.Kernel.UnitSystem : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.Equatable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.Hashable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.VideoFeedSource : Swift.Equatable {}
+extension DronelinkCore.Kernel.VideoFeedSource : Swift.Hashable {}
+extension DronelinkCore.Kernel.VideoFeedSource : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.ZoneShape : Swift.Equatable {}
 extension DronelinkCore.Kernel.ZoneShape : Swift.Hashable {}
 extension DronelinkCore.Kernel.ZoneShape : Swift.RawRepresentable {}
