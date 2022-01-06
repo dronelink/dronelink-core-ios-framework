@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.5.1 (swiftlang-1300.0.31.4 clang-1300.0.29.6)
+// swift-compiler-version: Apple Swift version 5.5.2 (swiftlang-1300.0.47.5 clang-1300.0.29.30)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -364,9 +364,11 @@ public class Command {
   public var completed: Swift.Bool {
     get
   }
-  final public let id: Swift.String
+  public var id: Swift.String {
+    get
+  }
   final public let config: DronelinkCore.CommandConfig
-  public init(id: Swift.String, name: Swift.String, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, config: DronelinkCore.CommandConfig)
+  public init(kernelCommand: DronelinkCore.KernelCommand, execute: @escaping (@escaping DronelinkCore.CommandFinished) -> Swift.Error?, finished: @escaping DronelinkCore.CommandFinished, config: DronelinkCore.CommandConfig)
   @objc deinit
 }
 extension DronelinkCore.Command {
@@ -1538,6 +1540,17 @@ public struct Kernel {
       get
     }
   }
+  public enum UserInterfaceMapTracking : Swift.String, Swift.Decodable {
+    case noChange
+    case none
+    case droneNorthUp
+    case droneHeading
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
   public enum VariableValueType : Swift.String, Swift.Decodable {
     case null
     case boolean
@@ -1844,6 +1857,7 @@ public struct Kernel {
     public var reticleImageUrl: Swift.String?
     public var droneOffsetsVisible: Swift.Bool?
     public var missionDetailsExpanded: Swift.Bool?
+    public var mapTracking: DronelinkCore.Kernel.UserInterfaceMapTracking
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Variable : Swift.Decodable {
@@ -1923,6 +1937,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1931,6 +1946,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1939,6 +1955,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct ConnectionFailSafeBehaviorDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand {
@@ -1946,6 +1963,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var connectionFailSafeBehavior: DronelinkCore.Kernel.DroneConnectionFailSafeBehavior
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1954,6 +1972,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var coordinate: DronelinkCore.Kernel.GeoCoordinate
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1962,6 +1981,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1970,6 +1990,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var config: DronelinkCore.CommandConfig {
       get
     }
@@ -1980,6 +2001,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct LandingProtectionDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
@@ -1987,6 +2009,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1995,6 +2018,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var lightbridgeChannel: Swift.Int
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2003,6 +2027,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var lightbridgeChannelSelectionMode: DronelinkCore.Kernel.DroneLightbridgeChannelSelectionMode
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2011,6 +2036,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var lightbridgeFrequencyBand: DronelinkCore.Kernel.DroneLightbridgeFrequencyBand
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2019,6 +2045,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var lowBatteryWarningThreshold: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2027,6 +2054,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var maxAltitude: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2035,6 +2063,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var maxDistance: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2043,6 +2072,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2051,6 +2081,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var ocuSyncChannel: Swift.Int
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2059,6 +2090,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var ocuSyncChannelSelectionMode: DronelinkCore.Kernel.DroneOcuSyncChannelSelectionMode
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2067,6 +2099,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var ocuSyncFrequencyBand: DronelinkCore.Kernel.DroneOcuSyncFrequencyBand
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2075,6 +2108,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var ocuSyncVideoFeedSources: [Swift.UInt : DronelinkCore.Kernel.VideoFeedSource]
     public init(ocuSyncVideoFeedSources: [Swift.UInt : DronelinkCore.Kernel.VideoFeedSource] = [:])
     public init(from decoder: Swift.Decoder) throws
@@ -2084,6 +2118,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2092,6 +2127,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var leftStick: DronelinkCore.Kernel.RemoteControllerStick
     public var rightStick: DronelinkCore.Kernel.RemoteControllerStick
@@ -2103,6 +2139,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public init(from decoder: Swift.Decoder) throws
   }
   public struct ReturnHomeAltitudeDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand {
@@ -2110,6 +2147,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var returnHomeAltitude: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2118,6 +2156,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2126,6 +2165,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2134,6 +2174,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var seriousLowBatteryWarningThreshold: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2142,6 +2183,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2150,6 +2192,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2158,6 +2201,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var spotlightBrightness: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2166,6 +2210,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2174,6 +2219,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var velocity: DronelinkCore.Kernel.Velocity6
     public var heading: Swift.Double?
     @objc deinit
@@ -2184,6 +2230,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
@@ -2192,6 +2239,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var targetGimbalChannel: Swift.UInt
     public init(channel: Swift.UInt = 0, targetGimbalChannel: Swift.UInt = 0)
@@ -2202,6 +2250,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var aebCount: DronelinkCore.Kernel.CameraAEBCount
     public init(from decoder: Swift.Decoder) throws
@@ -2211,6 +2260,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var aperture: DronelinkCore.Kernel.CameraAperture
     public init(from decoder: Swift.Decoder) throws
@@ -2220,6 +2270,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
@@ -2229,6 +2280,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
@@ -2238,6 +2290,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var color: DronelinkCore.Kernel.CameraColor
     public init(from decoder: Swift.Decoder) throws
@@ -2247,6 +2300,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var contrast: Swift.Int8
     public init(from decoder: Swift.Decoder) throws
@@ -2256,6 +2310,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var lensIndex: Swift.Int
     public var displayMode: DronelinkCore.Kernel.CameraDisplayMode
@@ -2267,6 +2322,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var exposureCompensation: DronelinkCore.Kernel.CameraExposureCompensation
     public init(exposureCompensation: DronelinkCore.Kernel.CameraExposureCompensation)
@@ -2278,6 +2334,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var exposureCompensationSteps: Swift.Int
     public init(channel: Swift.UInt = 0, exposureCompensationSteps: Swift.Int = 1)
@@ -2288,6 +2345,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var exposureMode: DronelinkCore.Kernel.CameraExposureMode
     public init(from decoder: Swift.Decoder) throws
@@ -2297,6 +2355,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var fileIndexMode: DronelinkCore.Kernel.CameraFileIndexMode
     public init(from decoder: Swift.Decoder) throws
@@ -2306,6 +2365,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var focusTarget: DronelinkCore.Kernel.Point2
     public var focusRingPercentLimits: DronelinkCore.Kernel.Limits?
@@ -2317,6 +2377,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var focusMode: DronelinkCore.Kernel.CameraFocusMode
     public init(channel: Swift.UInt = 0, focusMode: DronelinkCore.Kernel.CameraFocusMode = .auto)
@@ -2327,6 +2388,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var focusCalibration: DronelinkCore.Kernel.CameraFocusCalibration
     public init(from decoder: Swift.Decoder) throws
@@ -2336,6 +2398,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var focusRingPercent: Swift.Double
     public init(from decoder: Swift.Decoder) throws
@@ -2345,6 +2408,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var iso: DronelinkCore.Kernel.CameraISO
     public init(from decoder: Swift.Decoder) throws
@@ -2354,6 +2418,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
@@ -2363,6 +2428,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var meteringMode: DronelinkCore.Kernel.CameraMeteringMode
     public init(from decoder: Swift.Decoder) throws
@@ -2372,6 +2438,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var mode: DronelinkCore.Kernel.CameraMode
     public init(channel: Swift.UInt = 0, mode: DronelinkCore.Kernel.CameraMode = .photo)
@@ -2382,6 +2449,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var photoAspectRatio: DronelinkCore.Kernel.CameraPhotoAspectRatio
     public init(from decoder: Swift.Decoder) throws
@@ -2391,6 +2459,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var photoFileFormat: DronelinkCore.Kernel.CameraPhotoFileFormat
     public init(from decoder: Swift.Decoder) throws
@@ -2400,6 +2469,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var photoInterval: Swift.Int
     public init(from decoder: Swift.Decoder) throws
@@ -2409,6 +2479,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var photoMode: DronelinkCore.Kernel.CameraPhotoMode
     public init(channel: Swift.UInt = 0, photoMode: DronelinkCore.Kernel.CameraPhotoMode = .single)
@@ -2419,6 +2490,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var saturation: Swift.Int8
     public init(from decoder: Swift.Decoder) throws
@@ -2428,6 +2500,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var sharpness: Swift.Int8
     public init(from decoder: Swift.Decoder) throws
@@ -2437,6 +2510,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var shutterSpeed: DronelinkCore.Kernel.CameraShutterSpeed
     public init(from decoder: Swift.Decoder) throws
@@ -2446,6 +2520,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var spotMeteringTarget: DronelinkCore.Kernel.Point2
     public init(from decoder: Swift.Decoder) throws
@@ -2455,6 +2530,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var config: DronelinkCore.CommandConfig {
       get
@@ -2468,6 +2544,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public init(channel: Swift.UInt = 0)
     public init(from decoder: Swift.Decoder) throws
@@ -2477,6 +2554,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var storageLocation: DronelinkCore.Kernel.CameraStorageLocation
     public init(from decoder: Swift.Decoder) throws
@@ -2486,6 +2564,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
@@ -2495,6 +2574,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoFileCompressionStandard: DronelinkCore.Kernel.CameraVideoFileCompressionStandard
     public init(from decoder: Swift.Decoder) throws
@@ -2504,6 +2584,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoFileFormat: DronelinkCore.Kernel.CameraVideoFileFormat
     public init(from decoder: Swift.Decoder) throws
@@ -2513,6 +2594,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoMode: DronelinkCore.Kernel.CameraVideoMode
     public init(from decoder: Swift.Decoder) throws
@@ -2522,6 +2604,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoResolution: DronelinkCore.Kernel.CameraVideoResolution
     public var videoFrameRate: DronelinkCore.Kernel.CameraVideoFrameRate
@@ -2533,6 +2616,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoStandard: DronelinkCore.Kernel.CameraVideoStandard
     public init(from decoder: Swift.Decoder) throws
@@ -2542,6 +2626,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource
     public init(channel: Swift.UInt = 0, videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource = .wide)
@@ -2552,6 +2637,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var whiteBalanceCustom: Swift.UInt
     public init(from decoder: Swift.Decoder) throws
@@ -2561,6 +2647,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset
     public init(from decoder: Swift.Decoder) throws
@@ -2570,6 +2657,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var mode: DronelinkCore.Kernel.GimbalMode
     public init(from decoder: Swift.Decoder) throws
@@ -2579,6 +2667,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var orientation: DronelinkCore.Kernel.Orientation3Optional
     public init(channel: Swift.UInt = 0, orientation: DronelinkCore.Kernel.Orientation3Optional = Orientation3Optional())
@@ -2589,6 +2678,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var velocity: DronelinkCore.Kernel.Velocity3
     public init(from decoder: Swift.Decoder) throws
@@ -2598,6 +2688,7 @@ public struct Kernel {
       get
     }
     public var id: Swift.String
+    public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
@@ -2632,6 +2723,7 @@ public protocol KernelExternalExecutionState : DronelinkCore.KernelExecutionStat
 public protocol KernelCommand : DronelinkCore.KernelIdentifiable {
   var type: DronelinkCore.Kernel.CommandType { get }
   var config: DronelinkCore.CommandConfig { get }
+  var retriesMax: Swift.Int? { get set }
 }
 extension DronelinkCore.KernelCommand {
   public var config: DronelinkCore.CommandConfig {
@@ -2873,6 +2965,9 @@ extension DronelinkCore.Kernel.PlanCompleteAction : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.Equatable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.Hashable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.Equatable {}
+extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.Hashable {}
+extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.Equatable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.Hashable {}
 extension DronelinkCore.Kernel.VariableValueType : Swift.RawRepresentable {}
