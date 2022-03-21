@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.5.2 (swiftlang-1300.0.47.5 clang-1300.0.29.30)
+// swift-compiler-version: Apple Swift version 5.6 (swiftlang-5.6.0.323.62 clang-1316.0.20.8)
 // swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -439,7 +439,7 @@ public protocol DroneSession {
   func remove(delegate: DronelinkCore.DroneSessionDelegate)
   func add(command: DronelinkCore.KernelCommand) throws
   func removeCommands()
-  func createControlSession(executionEngine: DronelinkCore.Kernel.ExecutionEngine, executor: DronelinkCore.Executor) -> DronelinkCore.DroneControlSession?
+  func createControlSession(executionEngine: DronelinkCore.Kernel.ExecutionEngine, executor: DronelinkCore.Executor) throws -> DronelinkCore.DroneControlSession
   func remoteControllerState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.RemoteControllerStateAdapter>?
   func cameraState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func cameraState(channel: Swift.UInt, lensIndex: Swift.UInt?) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
@@ -543,6 +543,7 @@ public protocol RemoteControllerStateAdapter {
   var leftWheel: DronelinkCore.Kernel.RemoteControllerWheel { get }
   var rightStick: DronelinkCore.Kernel.RemoteControllerStick { get }
   var pauseButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var returnHomeButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var batteryPercent: Swift.Double { get }
