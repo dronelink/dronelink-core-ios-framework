@@ -10,7 +10,7 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		h1FkrS180eierBsze1f90zM/kZQ=
+		jFi4ri836N5c1FZ18pOjUCXZdQc=
 		</data>
 		<key>Localizable.strings</key>
 		<data>
@@ -22,11 +22,11 @@
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<data>
-		sTPxpLgQXqWrvAzcGyfZB3/BhQo=
+		VImHlZ6AmD8+qbL+uc5bv32AvSE=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		A4cAFdmfiatP4QpFb1dMJD1Nwc8=
+		qiqkfPbg23QcM7a5Wf1ecosElHg=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -60,14 +60,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			UHFbL4SC/OWadNvXuGU6TkiFmAjm2oUjPdsCNDjCjNA=
+			UMJ4m4qlj8hxE635CEuczt/8ruAQORT7XHefyrAfRm8=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			bZLF+DPRK7zA0YKGQrqLKev4o6rWVD5SEYCxP28uLQg=
+			TPsMWwtNEh1UNvWunyABW6xkEHDUH1CAYMlJG7lmGsU=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>

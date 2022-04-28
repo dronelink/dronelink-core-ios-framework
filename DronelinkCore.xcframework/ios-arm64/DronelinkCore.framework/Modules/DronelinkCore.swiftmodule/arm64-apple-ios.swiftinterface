@@ -364,6 +364,7 @@ public class Command {
   public var completed: Swift.Bool {
     get
   }
+  final public let kernelCommand: DronelinkCore.KernelCommand
   public var id: Swift.String {
     get
   }
@@ -375,6 +376,9 @@ extension DronelinkCore.Command {
   public static func conditionallyExecute(_ condition: Swift.Bool, error: Swift.Error? = nil, finished: (Swift.Error?) -> (), execute: () -> Swift.Void)
 }
 public class CommandQueue {
+  public var currentCommand: DronelinkCore.Command? {
+    get
+  }
   public init()
   public func removeAll()
   public func add(command: DronelinkCore.Command) throws
@@ -385,6 +389,7 @@ public class CommandQueue {
 public class MultiChannelCommandQueue {
   public init()
   public func removeAll()
+  public func commands(channel: Swift.UInt) -> DronelinkCore.CommandQueue?
   public func add(channel: Swift.UInt, command: DronelinkCore.Command) throws
   public func process()
   public func fail(channel: Swift.UInt)
