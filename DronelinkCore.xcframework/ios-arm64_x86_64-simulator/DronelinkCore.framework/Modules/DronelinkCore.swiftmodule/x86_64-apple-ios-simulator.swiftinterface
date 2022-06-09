@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.6 (swiftlang-5.6.0.323.62 clang-1316.0.20.8)
+// swift-compiler-version: Apple Swift version 5.6.1 (swiftlang-5.6.0.323.66 clang-1316.0.20.12)
 // swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 import AVFoundation
 import CoreLocation
@@ -97,6 +97,7 @@ extension DronelinkCore.Dronelink {
     get
     set
   }
+  public func createCommand(json: Swift.String) -> DronelinkCore.KernelCommand?
   public func format(formatter: Swift.String, value: Any?, defaultValue: Swift.String = "", extraParams: [Any]? = nil) -> Swift.String
   public func formatEnum(name: Swift.String, value: Swift.String?, defaultValue: Swift.String = "") -> Swift.String
   public func identify(device: DronelinkCore.Device)
@@ -104,7 +105,7 @@ extension DronelinkCore.Dronelink {
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
   public func announce(message: Swift.String)
   public func createAssetManifest(id: Swift.String? = nil, tags: [Swift.String]? = nil) throws -> DronelinkCore.AssetManifest
-  public var statusMessages: [DronelinkCore.Kernel.Message]? {
+  public var statusMessages: [DronelinkCore.Kernel.Message] {
     get
   }
   public func unload()
@@ -404,7 +405,7 @@ public protocol DroneSessionManager {
   func remove(delegate: DronelinkCore.DroneSessionManagerDelegate)
   func closeSession()
   var session: DronelinkCore.DroneSession? { get }
-  var statusMessages: [DronelinkCore.Kernel.Message]? { get }
+  var statusMessages: [DronelinkCore.Kernel.Message] { get }
 }
 public protocol DroneSessionDelegate {
   func onInitialized(session: DronelinkCore.DroneSession)
@@ -476,7 +477,7 @@ public protocol DroneAdapter {
   func startLanding(finished: DronelinkCore.CommandFinished?)
 }
 public protocol DroneStateAdapter {
-  var statusMessages: [DronelinkCore.Kernel.Message]? { get }
+  var statusMessages: [DronelinkCore.Kernel.Message] { get }
   var mode: Swift.String? { get }
   var isFlying: Swift.Bool { get }
   var location: CoreLocation.CLLocation? { get }
@@ -491,12 +492,15 @@ public protocol DroneStateAdapter {
   var ultrasonicAltitude: Swift.Double? { get }
   var batteryPercent: Swift.Double? { get }
   var lowBatteryThreshold: Swift.Double? { get }
+  var flightTimeRemaining: Swift.Double? { get }
   var obstacleDistance: Swift.Double? { get }
   var orientation: DronelinkCore.Kernel.Orientation3 { get }
   var gpsSatellites: Swift.Int? { get }
   var gpsSignalStrength: Swift.Double? { get }
   var downlinkSignalStrength: Swift.Double? { get }
   var uplinkSignalStrength: Swift.Double? { get }
+  var lightbridgeFrequencyBand: DronelinkCore.Kernel.DroneLightbridgeFrequencyBand? { get }
+  var ocuSyncFrequencyBand: DronelinkCore.Kernel.DroneOcuSyncFrequencyBand? { get }
 }
 public protocol CameraAdapter {
   var model: Swift.String? { get }
@@ -515,9 +519,14 @@ public protocol CameraStateAdapter {
   var mode: DronelinkCore.Kernel.CameraMode { get }
   var photoMode: DronelinkCore.Kernel.CameraPhotoMode? { get }
   var photoInterval: Swift.Int? { get }
+  var photoFileFormat: DronelinkCore.Kernel.CameraPhotoFileFormat { get }
   var burstCount: DronelinkCore.Kernel.CameraBurstCount? { get }
   var aebCount: DronelinkCore.Kernel.CameraAEBCount? { get }
+  var videoFileFormat: DronelinkCore.Kernel.CameraVideoFileFormat { get }
+  var videoFrameRate: DronelinkCore.Kernel.CameraVideoFrameRate { get }
+  var videoResolution: DronelinkCore.Kernel.CameraVideoResolution { get }
   var currentVideoTime: Swift.Double? { get }
+  var exposureMode: DronelinkCore.Kernel.CameraExposureMode { get }
   var exposureCompensation: DronelinkCore.Kernel.CameraExposureCompensation { get }
   var iso: DronelinkCore.Kernel.CameraISO { get }
   var isoSensitivity: Swift.Int? { get }
@@ -529,6 +538,7 @@ public protocol CameraStateAdapter {
   var lensDetails: Swift.String? { get }
   var focusRingValue: Swift.Double? { get }
   var focusRingMax: Swift.Double? { get }
+  var aspectRatio: DronelinkCore.Kernel.CameraPhotoAspectRatio { get }
 }
 public protocol GimbalAdapter {
   var index: Swift.UInt { get }
@@ -1208,8 +1218,10 @@ public struct Kernel {
     case _4608x2592
     case _5280x2160
     case _5280x2972
+    case _5472x3078
     case _5760x3240
     case _6016x3200
+    case _7680x4320
     case max
     case noSSDVideo
     case unknown
@@ -1631,6 +1643,7 @@ public struct Kernel {
     public var display: Swift.String {
       get
     }
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct DistanceTolerance : Swift.Decodable {
@@ -1758,6 +1771,7 @@ public struct Kernel {
     public var display: Swift.String {
       get
     }
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct MessageGroup : Swift.Decodable {
@@ -1767,6 +1781,7 @@ public struct Kernel {
     public var display: Swift.String {
       get
     }
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Mode : Swift.Decodable {
@@ -1844,6 +1859,9 @@ public struct Kernel {
     public var x: Swift.Double
     public var y: Swift.Double
     public init(x: Swift.Double = 0, y: Swift.Double = 0)
+    public var pressed: Swift.Bool {
+      get
+    }
     public init(from decoder: Swift.Decoder) throws
   }
   public struct RemoteControllerButton : Swift.Decodable {
@@ -1928,6 +1946,7 @@ public struct Kernel {
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Command {
+    public static func decode(value: JavaScriptCore.JSValue) -> DronelinkCore.KernelCommand?
   }
   public struct CommandExecutionState : Swift.Decodable, DronelinkCore.KernelIdentifiable {
     public var id: Swift.String
@@ -2793,6 +2812,9 @@ extension CoreLocation.CLLocationCoordinate2D {
   public func bearing(to: CoreLocation.CLLocationCoordinate2D) -> Swift.Double
   public func distance(to: CoreLocation.CLLocationCoordinate2D) -> Swift.Double
   public var asDict: [Swift.String : Any] {
+    get
+  }
+  public var asLocation: CoreLocation.CLLocation {
     get
   }
 }

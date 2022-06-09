@@ -6,27 +6,27 @@
 	<dict>
 		<key>Headers/DronelinkCore-Swift.h</key>
 		<data>
-		KXml8wcGGZRoGKxrFd1ExnlKA6o=
+		KVN00UFhnx3ALTzqqlU2Bxv6UUk=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		jFi4ri836N5c1FZ18pOjUCXZdQc=
+		t9BXqOfk2LSHQB58Me7yDgLefNw=
 		</data>
 		<key>Localizable.strings</key>
 		<data>
-		WT6yBnAblKhXWH4v9umLFxKDApI=
+		daCPj30s517sSB/TvgWGQM6rSf8=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<data>
-		JRFvTDmRyrZPebfTDfZPmuO28bs=
+		brHB4neEmQL+zUi7LXWcSAknrMM=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<data>
-		VImHlZ6AmD8+qbL+uc5bv32AvSE=
+		THoi35kZWjdT17OAf/x3UTnQpmo=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		qiqkfPbg23QcM7a5Wf1ecosElHg=
+		yREzw1WBdxGvzVhFBuDXKVmjzN0=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -39,35 +39,35 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			hgnqc1JpTQge9yEFHHo6Dzha+HiagQ/8V61XjhupulQ=
+			my712Mfi3S7UTamkDwddbWpy7JFpQM143Gv5f3l1zV8=
 			</data>
 		</dict>
 		<key>Localizable.strings</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			UXR01URrQBBYn0q6lNsDPZlktfPEsfEhvsdqEIkS4d4=
+			YoC6jN1UeCFoHJ14tmhf+sm58ARXhevm3LJPr/fnBUo=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			hjsxh+RsC294zmDjXAlm4hCfIl0whlgTmcv8XTgpTrI=
+			FsUVlzyJZ4p/icBKZo7OByMWXEvenHN3Dth4+M7cfxg=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			UMJ4m4qlj8hxE635CEuczt/8ruAQORT7XHefyrAfRm8=
+			7+RTJDyyeaJxil9M44oTuFpBeoHKTD79O7YxBQx4JBk=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			TPsMWwtNEh1UNvWunyABW6xkEHDUH1CAYMlJG7lmGsU=
+			mupXzKkSl+hBUTN1zjsHtXxySlGeS2OiPu4k2Wzb2YM=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
