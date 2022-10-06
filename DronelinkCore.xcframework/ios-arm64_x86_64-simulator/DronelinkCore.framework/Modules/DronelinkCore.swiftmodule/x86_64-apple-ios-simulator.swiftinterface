@@ -121,9 +121,13 @@ extension DronelinkCore.Dronelink {
   public func load(id: Swift.String = UUID().uuidString, metadata: DronelinkCore.ModeExecutorMetadata? = nil, mode: Swift.String, delegate: DronelinkCore.ModeExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMode()
   public func clearCameraFocusCalibrations(serialNumber: Swift.String? = nil) -> Swift.Int
+  public func clear(cameraFocusCalibration: DronelinkCore.Kernel.CameraFocusCalibration)
   public func request(cameraFocusCalibration: DronelinkCore.Kernel.CameraFocusCalibration)
   public func update(cameraFocusCalibration: DronelinkCore.Kernel.CameraFocusCalibration)
   public func get(cameraFocusCalibration: DronelinkCore.Kernel.CameraFocusCalibration) -> DronelinkCore.Kernel.CameraFocusCalibration?
+  public var cameraFocusCalibrations: [DronelinkCore.Kernel.CameraFocusCalibration] {
+    get
+  }
   @objc deinit
 }
 extension DronelinkCore.Dronelink : CoreLocation.CLLocationManagerDelegate {
@@ -223,7 +227,12 @@ public class DroneOffsets {
   public var droneCoordinateReference: CoreLocation.CLLocationCoordinate2D?
   public var cameraExposureCompensationSteps: Swift.Int
   public init(droneYaw: Swift.Double = 0.0, droneAltitude: Swift.Double = 0.0, droneCoordinate: DronelinkCore.Kernel.Vector2 = Kernel.Vector2(), cameraExposureCompensationSteps: Swift.Int = 0)
+  public var clone: DronelinkCore.DroneOffsets {
+    get
+  }
+  public func equivalent(droneOffsets: DronelinkCore.DroneOffsets) -> Swift.Bool
   public func reset(droneCoordinateReference: Swift.Bool = true, cameraExposureCompensationSteps: Swift.Bool = true)
+  public func asDict() -> [Swift.String : Any]
   @objc deinit
 }
 @_hasMissingDesignatedInitializers public class Executor {
@@ -407,6 +416,8 @@ public protocol DroneSessionManager {
   func add(delegate: DronelinkCore.DroneSessionManagerDelegate)
   func remove(delegate: DronelinkCore.DroneSessionManagerDelegate)
   func closeSession()
+  func startRemoteControllerLinking(finished: DronelinkCore.CommandFinished?)
+  func stopRemoteControllerLinking(finished: DronelinkCore.CommandFinished?)
   var session: DronelinkCore.DroneSession? { get }
   var statusMessages: [DronelinkCore.Kernel.Message] { get }
 }
@@ -448,7 +459,7 @@ public protocol DroneSession {
   func remove(delegate: DronelinkCore.DroneSessionDelegate)
   func add(command: DronelinkCore.KernelCommand) throws
   func removeCommands()
-  func createControlSession(executionEngine: DronelinkCore.Kernel.ExecutionEngine, executor: DronelinkCore.Executor) throws -> DronelinkCore.DroneControlSession
+  func createControlSession(executionEngine: DronelinkCore.Kernel.ExecutionEngine, executor: DronelinkCore.Executor?) throws -> DronelinkCore.DroneControlSession
   func remoteControllerState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.RemoteControllerStateAdapter>?
   func cameraState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func cameraState(channel: Swift.UInt, lensIndex: Swift.UInt?) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
@@ -528,6 +539,7 @@ public protocol CameraAdapter {
   var index: Swift.UInt { get }
   func lensIndex(videoStreamSource: DronelinkCore.Kernel.CameraVideoStreamSource) -> Swift.UInt
   func format(storageLocation: DronelinkCore.Kernel.CameraStorageLocation, finished: DronelinkCore.CommandFinished?)
+  func histogram(enabled: Swift.Bool, finished: DronelinkCore.CommandFinished?)
   func enumElements(parameter: Swift.String) -> [DronelinkCore.EnumElement]?
 }
 public protocol CameraStateAdapter {
@@ -560,10 +572,14 @@ public protocol CameraStateAdapter {
   var aperture: DronelinkCore.Kernel.CameraAperture { get }
   var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
   var whiteBalanceColorTemperature: Swift.Int? { get }
+  var histogram: [Swift.UInt]? { get }
   var lensIndex: Swift.UInt { get }
   var lensDetails: Swift.String? { get }
+  var focusMode: DronelinkCore.Kernel.CameraFocusMode { get }
   var focusRingValue: Swift.Double? { get }
   var focusRingMax: Swift.Double? { get }
+  var meteringMode: DronelinkCore.Kernel.CameraMeteringMode { get }
+  var isAutoExposureLockEnabled: Swift.Bool { get }
   var aspectRatio: DronelinkCore.Kernel.CameraPhotoAspectRatio { get }
 }
 public protocol GimbalAdapter {
@@ -640,6 +656,7 @@ public protocol FuncExecutorMetadata {
   public func addNextDynamicInput(droneSession: DronelinkCore.DroneSession?, finished: @escaping (Swift.String?) -> ())
   public func removeLastDynamicInput()
   public func addCachedInputs(funcExecutor: DronelinkCore.FuncExecutor)
+  public func addCachedInputs(funcExecutorSerialized: Swift.String?)
   @objc deinit
 }
 extension DronelinkCore.FuncExecutor {
@@ -1669,6 +1686,7 @@ public struct Kernel {
     public init(distance: Swift.Double = 0.0, ringValueRange: Swift.Double = 0.0, minRingValues: Swift.Int = 0, ringValue: Swift.Double? = nil, droneSerialNumber: Swift.String? = nil)
     public func covers(value: DronelinkCore.Kernel.CameraFocusCalibration) -> Swift.Bool
     public func with(droneSerialNumber: Swift.String?) -> DronelinkCore.Kernel.CameraFocusCalibration
+    public func asDict() -> [Swift.String : Any]
     public func encode(to encoder: Swift.Encoder) throws
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1778,6 +1796,8 @@ public struct Kernel {
   }
   public struct FuncInputExtensions : Swift.Decodable {
     public var droneOffsetsCoordinateReference: Swift.Bool
+    public var gimbalOrientation: DronelinkCore.Kernel.Orientation3Optional
+    public var gimbalControlsVisible: Swift.Bool
     public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1858,6 +1878,7 @@ public struct Kernel {
     public var yaw: Swift.Double? {
       get
     }
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Orientation3 : Swift.Decodable {
@@ -1881,6 +1902,8 @@ public struct Kernel {
   public struct PlanReengagementRules : Swift.Decodable {
     public var confirmationMessage: DronelinkCore.Kernel.Message?
     public var confirmationInstructionsImageUrl: Swift.String?
+    public var georectifyInstructionsImageUrl: Swift.String?
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct PlanRestrictionZone : Swift.Decodable {
@@ -1928,6 +1951,7 @@ public struct Kernel {
     public var missionDetailsExpanded: Swift.Bool?
     public var mapTracking: DronelinkCore.Kernel.UserInterfaceMapTracking
     public var dashboardFlavor: DronelinkCore.Kernel.UserInterfaceDashboardFlavor
+    public var gimbalOrientationVisible: Swift.Bool?
     public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
@@ -1949,6 +1973,7 @@ public struct Kernel {
       get
     }
     public func add(vector: DronelinkCore.Kernel.Vector2) -> DronelinkCore.Kernel.Vector2
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: Swift.Decoder) throws
   }
   public struct Velocity3 : Swift.Decodable {
