@@ -117,6 +117,7 @@ extension DronelinkCore.Dronelink {
   public func loadCopy(id: Swift.String = UUID().uuidString, mission: Swift.String, delegate: DronelinkCore.MissionExecutorDelegate? = nil, detailsURL: Swift.String? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
   public func load(id: Swift.String? = nil, _func: Swift.String, missionID: Swift.String = UUID().uuidString, modeID: Swift.String = UUID().uuidString, metadata: DronelinkCore.FuncExecutorMetadata? = nil, delegate: DronelinkCore.FuncExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func readFuncUrls(_func: Swift.String, error: ((Swift.String) -> ())? = nil) throws -> [Swift.String]
   public func unloadFunc()
   public func load(id: Swift.String = UUID().uuidString, metadata: DronelinkCore.ModeExecutorMetadata? = nil, mode: Swift.String, delegate: DronelinkCore.ModeExecutorDelegate? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMode()
@@ -464,6 +465,7 @@ public protocol DroneSession {
   func cameraState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func cameraState(channel: Swift.UInt, lensIndex: Swift.UInt?) -> DronelinkCore.DatedValue<DronelinkCore.CameraStateAdapter>?
   func gimbalState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.GimbalStateAdapter>?
+  func batteryState(index: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.BatteryStateAdapter>?
   func resetPayloads()
   func close()
 }
@@ -487,10 +489,12 @@ public protocol DroneAdapter {
   var remoteControllers: [DronelinkCore.RemoteControllerAdapter]? { get }
   var cameras: [DronelinkCore.CameraAdapter]? { get }
   var gimbals: [DronelinkCore.GimbalAdapter]? { get }
+  var batteries: [DronelinkCore.BatteryAdapter]? { get }
   func remoteController(channel: Swift.UInt) -> DronelinkCore.RemoteControllerAdapter?
   func cameraChannel(videoFeedChannel: Swift.UInt?) -> Swift.UInt?
   func camera(channel: Swift.UInt) -> DronelinkCore.CameraAdapter?
   func gimbal(channel: Swift.UInt) -> DronelinkCore.GimbalAdapter?
+  func battery(channel: Swift.UInt) -> DronelinkCore.BatteryAdapter?
   func send(velocityCommand: DronelinkCore.Kernel.VelocityDroneCommand?)
   func send(remoteControllerSticksCommand: DronelinkCore.Kernel.RemoteControllerSticksDroneCommand?)
   func startTakeoff(finished: DronelinkCore.CommandFinished?)
@@ -570,6 +574,7 @@ public protocol CameraStateAdapter {
   var shutterSpeed: DronelinkCore.Kernel.CameraShutterSpeed { get }
   var shutterSpeedActual: DronelinkCore.Kernel.CameraShutterSpeed? { get }
   var aperture: DronelinkCore.Kernel.CameraAperture { get }
+  var apertureActual: DronelinkCore.Kernel.CameraAperture { get }
   var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset { get }
   var whiteBalanceColorTemperature: Swift.Int? { get }
   var histogram: [Swift.UInt]? { get }
@@ -593,7 +598,19 @@ public protocol GimbalStateAdapter {
   var mode: DronelinkCore.Kernel.GimbalMode { get }
   var orientation: DronelinkCore.Kernel.Orientation3 { get }
 }
+public protocol BatteryAdapter {
+  var index: Swift.UInt { get }
+  var serialNumber: Swift.String? { get }
+  var firmwareVersion: Swift.String? { get }
+  var cellCount: Swift.Int? { get }
+}
+public protocol BatteryStateAdapter {
+  var chargeRemainingPercent: Swift.Double? { get }
+  var voltage: Swift.Double? { get }
+}
 public protocol RemoteControllerAdapter {
+  func startDeviceCharging(finished: DronelinkCore.CommandFinished?)
+  func stopDeviceCharging(finished: DronelinkCore.CommandFinished?)
   var index: Swift.UInt { get }
 }
 public protocol RemoteControllerStateAdapter {
@@ -604,6 +621,7 @@ public protocol RemoteControllerStateAdapter {
   var returnHomeButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var isChargingDevice: Swift.Bool? { get }
   var batteryPercent: Swift.Double { get }
 }
 public protocol FuncExecutorDelegate {
@@ -640,7 +658,7 @@ public protocol FuncExecutorMetadata {
   public var introImageUrl: Swift.String? {
     get
   }
-  public var urls: [Foundation.URL]? {
+  public var urls: [Foundation.URL] {
     get
   }
   public func mapOverlays(droneSession: DronelinkCore.DroneSession?, error: @escaping (Swift.String) -> ()) -> [DronelinkCore.Kernel.FuncMapOverlay]?
@@ -734,6 +752,7 @@ public protocol MissionExecutorDelegate {
   public var reengaging: Swift.Bool {
     get
   }
+  public var resetPayloadsOnDisengage: Swift.Bool
   public func add(delegate: DronelinkCore.MissionExecutorDelegate)
   public func remove(delegate: DronelinkCore.MissionExecutorDelegate)
   public func estimate(droneSession: DronelinkCore.DroneSession? = nil, altitudeRequired: Swift.Bool = false, timeRequired: Swift.Bool = true)
@@ -808,6 +827,12 @@ public struct Kernel {
     }
   }
   public enum CameraAperture : Swift.String, Swift.Decodable {
+    case auto
+    case f0dot95
+    case f1dot0
+    case f1dot2
+    case f1dot3
+    case f1dot4
     case f1dot6
     case f1dot7
     case f1dot8
@@ -821,10 +846,12 @@ public struct Kernel {
     case f3dot4
     case f3dot5
     case f4
+    case f4dot4
     case f4dot5
     case f4dot8
     case f5
     case f5dot6
+    case f6
     case f6dot3
     case f6dot8
     case f7dot1
@@ -841,6 +868,16 @@ public struct Kernel {
     case f19
     case f20
     case f22
+    case f25
+    case f27
+    case f28
+    case f32
+    case f37
+    case f41
+    case f45
+    case f52
+    case f58
+    case f64
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -885,6 +922,7 @@ public struct Kernel {
     case vision4
     case vision6
     case trueColorExt
+    case film
     case filmA
     case filmB
     case filmC
@@ -895,6 +933,8 @@ public struct Kernel {
     case filmH
     case filmI
     case hlg
+    case rec709
+    case cinelike
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -984,6 +1024,7 @@ public struct Kernel {
     case manual
     case auto
     case autoContinuous
+    case fineTune
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -993,6 +1034,7 @@ public struct Kernel {
   }
   public enum CameraISO : Swift.String, Swift.Decodable {
     case auto
+    case _50
     case _100
     case _200
     case _400
@@ -1002,6 +1044,26 @@ public struct Kernel {
     case _6400
     case _12800
     case _25600
+    case _51200
+    case _102400
+    case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum CameraLensType : Swift.String, Swift.Decodable {
+    case _default
+    case wide
+    case zoom
+    case thermal
+    case ndvi
+    case visible
+    case msG
+    case msR
+    case msRE
+    case msNIR
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1037,6 +1099,9 @@ public struct Kernel {
     case _4x3
     case _16x9
     case _3x2
+    case _18x9
+    case _5x4
+    case _1x1
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1048,10 +1113,13 @@ public struct Kernel {
     case raw
     case jpeg
     case rawAndJpeg
+    case tiff8bit
     case tiff14bit
-    case radiometricJpeg
     case tiff14bitLinearLowTempResolution
     case tiff14bitLinearHighTempResolution
+    case radiometricJpeg
+    case radiometricJpegLow
+    case radiometricJpegHigh
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1066,14 +1134,18 @@ public struct Kernel {
     case aeb
     case interval
     case timeLapse
+    case hyperLapse
     case rawBurst
     case shallowFocus
     case panorama
     case ehdr
     case hyperLight
     case highResolution
+    case superResolution
+    case regionalSR
     case smart
     case internalAISpotChecking
+    case vr
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1083,6 +1155,10 @@ public struct Kernel {
   }
   public enum CameraShutterSpeed : Swift.String, Swift.Decodable {
     case auto
+    case _1_20000
+    case _1_16000
+    case _1_12800
+    case _1_10000
     case _1_8000
     case _1_6400
     case _1_6000
@@ -1159,6 +1235,12 @@ public struct Kernel {
     case _23
     case _25
     case _30
+    case _40
+    case _50
+    case _60
+    case _80
+    case _100
+    case _120
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1169,6 +1251,7 @@ public struct Kernel {
   public enum CameraStorageLocation : Swift.String, Swift.Decodable {
     case sdCard
     case _internal
+    case internalSSD
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1179,6 +1262,7 @@ public struct Kernel {
   public enum CameraVideoFileCompressionStandard : Swift.String, Swift.Decodable {
     case h264
     case h265
+    case proRes
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1191,6 +1275,8 @@ public struct Kernel {
     case mp4
     case tiffSequence
     case seq
+    case cdng
+    case mxf
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1237,6 +1323,10 @@ public struct Kernel {
     case normal
     case hdr
     case slowMotion
+    case fastMotion
+    case timeLapse
+    case hyperLapse
+    case quickShot
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1246,15 +1336,25 @@ public struct Kernel {
   }
   public enum CameraVideoResolution : Swift.String, Swift.Decodable {
     case _336x256
+    case _640x340
     case _640x360
     case _640x480
     case _640x512
+    case _720x576
+    case _864x480
+    case _1080x1920
     case _1280x720
+    case _1280x1024
+    case _1512x2688
+    case _1920x960
     case _1920x1080
     case _2048x1080
     case _2688x1512
+    case _2688x2016
     case _2704x1520
     case _2720x1530
+    case _2720x2040
+    case _2880x1620
     case _3712x2088
     case _3840x1572
     case _3840x2160
@@ -1262,12 +1362,19 @@ public struct Kernel {
     case _4096x2160
     case _4608x2160
     case _4608x2592
+    case _5120x2700
+    case _5120x2880
+    case _5248x2952
     case _5280x2160
     case _5280x2972
     case _5472x3078
+    case _5472x3648
+    case _5576x2952
     case _5760x3240
     case _6016x3200
     case _7680x4320
+    case _8192x3424
+    case _8192x4320
     case max
     case noSSDVideo
     case unknown
@@ -1288,9 +1395,16 @@ public struct Kernel {
     }
   }
   public enum CameraVideoStreamSource : Swift.String, Swift.Decodable {
-    case zoom
+    case _default
     case wide
+    case zoom
     case thermal
+    case ndvi
+    case visible
+    case msG
+    case msR
+    case msRE
+    case msNIR
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1307,6 +1421,7 @@ public struct Kernel {
     case indoorFluorescent
     case custom
     case neutral
+    case underwater
     case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
@@ -1519,6 +1634,8 @@ public struct Kernel {
   public enum DroneOcuSyncFrequencyBand : Swift.String, Swift.Decodable {
     case _2dot4ghz
     case _5dot8ghz
+    case _5dot7ghz
+    case _1dot4ghz
     case dual
     case unknown
     public init?(rawValue: Swift.String)
@@ -2571,7 +2688,7 @@ public struct Kernel {
     public var id: Swift.String
     public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
-    public var photoInterval: Swift.Int
+    public var photoInterval: Swift.Double
     public init(from decoder: Swift.Decoder) throws
   }
   public struct PhotoModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
@@ -2965,6 +3082,9 @@ extension DronelinkCore.Kernel.CameraFocusMode : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraISO : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraISO : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraISO : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.CameraLensType : Swift.Equatable {}
+extension DronelinkCore.Kernel.CameraLensType : Swift.Hashable {}
+extension DronelinkCore.Kernel.CameraLensType : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.CameraMeteringMode : Swift.Equatable {}
 extension DronelinkCore.Kernel.CameraMeteringMode : Swift.Hashable {}
 extension DronelinkCore.Kernel.CameraMeteringMode : Swift.RawRepresentable {}
