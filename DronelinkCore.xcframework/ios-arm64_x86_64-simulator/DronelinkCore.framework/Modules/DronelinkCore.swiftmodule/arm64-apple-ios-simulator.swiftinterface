@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.7 (swiftlang-5.7.0.127.4 clang-1400.0.29.50)
+// swift-compiler-version: Apple Swift version 5.7.1 (swiftlang-5.7.1.135.3 clang-1400.0.29.51)
 // swift-module-flags: -target arm64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 // swift-module-flags-ignorable: -enable-bare-slash-regex
 import AVFoundation
@@ -1470,6 +1470,7 @@ public struct Kernel {
     case cameraAutoLockGimbal
     case cameraColor
     case cameraContrast
+    case cameraDewarping
     case cameraDisplayMode
     case cameraExposureCompensation
     case cameraExposureCompensationStep
@@ -2065,6 +2066,7 @@ public struct Kernel {
   public struct UserInterfaceSettings : Swift.Decodable {
     public var reticleImageUrl: Swift.String?
     public var droneOffsetsVisible: Swift.Bool?
+    public var missionSummaryExtended: Swift.Bool?
     public var missionDetailsExpanded: Swift.Bool?
     public var mapTracking: DronelinkCore.Kernel.UserInterfaceMapTracking
     public var dashboardFlavor: DronelinkCore.Kernel.UserInterfaceDashboardFlavor
@@ -2520,6 +2522,16 @@ public struct Kernel {
     public var retriesMax: Swift.Int?
     public var channel: Swift.UInt
     public var contrast: Swift.Int8
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct DewarpingCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var channel: Swift.UInt
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct DisplayModeCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
