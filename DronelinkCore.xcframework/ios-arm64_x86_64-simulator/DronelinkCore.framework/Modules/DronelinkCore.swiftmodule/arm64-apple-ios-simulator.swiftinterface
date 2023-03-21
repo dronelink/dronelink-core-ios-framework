@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.7.1 (swiftlang-5.7.1.135.3 clang-1400.0.29.51)
+// swift-compiler-version: Apple Swift version 5.7.2 (swiftlang-5.7.2.135.5 clang-1400.0.29.51)
 // swift-module-flags: -target arm64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 // swift-module-flags-ignorable: -enable-bare-slash-regex
 import AVFoundation
@@ -467,6 +467,7 @@ public protocol DroneSession {
   func gimbalState(channel: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.GimbalStateAdapter>?
   func batteryState(index: Swift.UInt) -> DronelinkCore.DatedValue<DronelinkCore.BatteryStateAdapter>?
   func resetPayloads()
+  func resetPayloads(gimbal: Swift.Bool, camera: Swift.Bool)
   func close()
 }
 public protocol DroneControlSession {
@@ -1434,6 +1435,7 @@ public struct Kernel {
     case droneCollisionAvoidance
     case droneAutoLand
     case droneConnectionFailSafeBehavior
+    case droneDownwardAvoidance
     case droneHomeLocation
     case droneLandingGearAutomaticMovement
     case droneLandingGearDeploy
@@ -2184,6 +2186,15 @@ public struct Kernel {
     public var id: Swift.String
     public var retriesMax: Swift.Int?
     public var connectionFailSafeBehavior: DronelinkCore.Kernel.DroneConnectionFailSafeBehavior
+    public init(from decoder: Swift.Decoder) throws
+  }
+  public struct DownwardAvoidanceDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var enabled: Swift.Bool
     public init(from decoder: Swift.Decoder) throws
   }
   public struct HomeLocationDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand {
