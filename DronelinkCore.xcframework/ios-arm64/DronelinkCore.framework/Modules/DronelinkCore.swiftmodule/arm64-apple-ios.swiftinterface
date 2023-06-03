@@ -467,6 +467,7 @@ public protocol DroneSession {
   func gimbalState(channel: Swift.UInt) -> DronelinkCore.DatedValue<any DronelinkCore.GimbalStateAdapter>?
   func batteryState(index: Swift.UInt) -> DronelinkCore.DatedValue<any DronelinkCore.BatteryStateAdapter>?
   var rtkState: DronelinkCore.DatedValue<any DronelinkCore.RTKStateAdapter>? { get }
+  var liveStreamingState: DronelinkCore.DatedValue<any DronelinkCore.LiveStreamingStateAdapter>? { get }
   func resetPayloads()
   func resetPayloads(gimbal: Swift.Bool, camera: Swift.Bool)
   func close()
@@ -498,6 +499,7 @@ public protocol DroneAdapter {
   func gimbal(channel: Swift.UInt) -> (any DronelinkCore.GimbalAdapter)?
   func battery(channel: Swift.UInt) -> (any DronelinkCore.BatteryAdapter)?
   var rtk: (any DronelinkCore.RTKAdapter)? { get }
+  var liveStreaming: (any DronelinkCore.LiveStreamingAdapter)? { get }
   func send(velocityCommand: DronelinkCore.Kernel.VelocityDroneCommand?)
   func send(remoteControllerSticksCommand: DronelinkCore.Kernel.RemoteControllerSticksDroneCommand?)
   func startTakeoff(finished: DronelinkCore.CommandFinished?)
@@ -540,6 +542,7 @@ public protocol DroneStateAdapter {
   var uplinkSignalStrength: Swift.Double? { get }
   var lightbridgeFrequencyBand: DronelinkCore.Kernel.DroneLightbridgeFrequencyBand? { get }
   var ocuSyncFrequencyBand: DronelinkCore.Kernel.DroneOcuSyncFrequencyBand? { get }
+  var auxiliaryLightModeBottom: DronelinkCore.Kernel.DroneAuxiliaryLightMode? { get }
 }
 public protocol CameraAdapter {
   var model: Swift.String? { get }
@@ -622,19 +625,41 @@ public protocol RTKStateAdapter {
   var healthy: Swift.Bool? { get }
   var statusMessages: [DronelinkCore.Kernel.Message] { get }
 }
+public protocol LiveStreamingAdapter {
+}
+public protocol LiveStreamingStateAdapter {
+  var enabled: Swift.Bool { get }
+  var statusMessages: [DronelinkCore.Kernel.Message] { get }
+}
 public protocol RemoteControllerAdapter {
   func startDeviceCharging(finished: DronelinkCore.CommandFinished?)
   func stopDeviceCharging(finished: DronelinkCore.CommandFinished?)
   var index: Swift.UInt { get }
 }
 public protocol RemoteControllerStateAdapter {
+  var location: CoreLocation.CLLocation? { get }
   var leftStick: DronelinkCore.Kernel.RemoteControllerStick { get }
   var leftWheel: DronelinkCore.Kernel.RemoteControllerWheel { get }
   var rightStick: DronelinkCore.Kernel.RemoteControllerStick { get }
+  var captureButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var videoButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var photoButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var pauseButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var returnHomeButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var functionButton: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var c2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var c3Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var upButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var downButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var leftButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var rightButton: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var l1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var l2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var l3Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var r1Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var r2Button: DronelinkCore.Kernel.RemoteControllerButton { get }
+  var r3Button: DronelinkCore.Kernel.RemoteControllerButton { get }
   var isChargingDevice: Swift.Bool? { get }
   var batteryPercent: Swift.Double { get }
 }
@@ -1444,6 +1469,7 @@ public struct Kernel {
     }
   }
   public enum CommandType : Swift.String {
+    case droneAuxiliaryLightMode
     case droneBeacon
     case droneCollisionAvoidance
     case droneAutoLand
@@ -1484,6 +1510,8 @@ public struct Kernel {
     case rtkMaintainAccuracy
     case rtkModule
     case rtkReferenceStationSource
+    case liveStreamingRTMPSettings
+    case liveStreamingModule
     case cameraAEBCount
     case cameraAperture
     case cameraAutoExposureLock
@@ -1604,6 +1632,28 @@ public struct Kernel {
   public enum DJIWaypointTurnMode : Swift.String, Swift.Decodable {
     case clockwise
     case counterClockwise
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum DroneAuxiliaryLightMode : Swift.String, Swift.Decodable {
+    case auto
+    case on
+    case off
+    case beacon
+    case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum DroneAuxiliaryLightPosition : Swift.String, Swift.Decodable {
+    case bottom
+    case top
+    case unknown
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
@@ -2127,6 +2177,7 @@ public struct Kernel {
     public var present: Swift.Bool
     public var pressed: Swift.Bool
     public init(present: Swift.Bool = false, pressed: Swift.Bool = false)
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct RemoteControllerWheel : Swift.Decodable {
@@ -2222,6 +2273,16 @@ public struct Kernel {
     public var finished: DronelinkCore.Kernel.Datetime?
     public var error: Swift.String?
     public init(id: Swift.String = "", status: DronelinkCore.Kernel.CommandExecutionStatus = .pending, error: Swift.String? = nil)
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct AuxiliaryLightModeDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var auxiliaryLightPosition: DronelinkCore.Kernel.DroneAuxiliaryLightPosition
+    public var auxiliaryLightMode: DronelinkCore.Kernel.DroneAuxiliaryLightMode
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct BeaconDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneAccessoryCommand {
@@ -2578,6 +2639,24 @@ public struct Kernel {
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct ModuleRTKCommand : Swift.Decodable, DronelinkCore.KernelRTKCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var enabled: Swift.Bool
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct RTMPSettingsLiveStreamingCommand : Swift.Decodable, DronelinkCore.KernelRTMPLiveStreamingCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var url: Swift.String
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct ModuleLiveStreamingCommand : Swift.Decodable, DronelinkCore.KernelLiveStreamingCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
     }
@@ -3099,6 +3178,10 @@ public protocol KernelRTKCommand : DronelinkCore.KernelCommand {
 }
 public protocol KernelCustomNetworkRTKCommand : DronelinkCore.KernelRTKCommand {
 }
+public protocol KernelLiveStreamingCommand : DronelinkCore.KernelCommand {
+}
+public protocol KernelRTMPLiveStreamingCommand : DronelinkCore.KernelLiveStreamingCommand {
+}
 public protocol KernelDroneFlightAssistantCommand : DronelinkCore.KernelCommand {
 }
 public protocol KernelDroneLandingGearCommand : DronelinkCore.KernelCommand {
@@ -3304,6 +3387,12 @@ extension DronelinkCore.Kernel.DJIWaypointMissionFlightPathMode : Swift.RawRepre
 extension DronelinkCore.Kernel.DJIWaypointTurnMode : Swift.Equatable {}
 extension DronelinkCore.Kernel.DJIWaypointTurnMode : Swift.Hashable {}
 extension DronelinkCore.Kernel.DJIWaypointTurnMode : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightMode : Swift.Equatable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightMode : Swift.Hashable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightMode : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightPosition : Swift.Equatable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightPosition : Swift.Hashable {}
+extension DronelinkCore.Kernel.DroneAuxiliaryLightPosition : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.DroneConnectionFailSafeBehavior : Swift.Equatable {}
 extension DronelinkCore.Kernel.DroneConnectionFailSafeBehavior : Swift.Hashable {}
 extension DronelinkCore.Kernel.DroneConnectionFailSafeBehavior : Swift.RawRepresentable {}
