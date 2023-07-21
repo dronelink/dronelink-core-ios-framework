@@ -98,6 +98,10 @@ extension DronelinkCore.Dronelink {
     get
     set
   }
+  public var locale: Swift.String {
+    get
+    set
+  }
   public func createCommand(json: Swift.String) -> (any DronelinkCore.KernelCommand)?
   public func format(formatter: Swift.String, value: Any?, defaultValue: Swift.String = "", extraParams: [Any]? = nil) -> Swift.String
   public func formatEnum(name: Swift.String, value: Swift.String?, defaultValue: Swift.String = "") -> Swift.String
@@ -249,6 +253,10 @@ public class DroneOffsets {
     get
   }
   public var unitSystem: DronelinkCore.Kernel.UnitSystem {
+    get
+    set
+  }
+  public var locale: Swift.String {
     get
     set
   }
@@ -589,6 +597,9 @@ public protocol CameraStateAdapter {
   var focusMode: DronelinkCore.Kernel.CameraFocusMode { get }
   var focusRingValue: Swift.Double? { get }
   var focusRingMax: Swift.Double? { get }
+  var isPercentZoomSupported: Swift.Bool { get }
+  var isRatioZoomSupported: Swift.Bool { get }
+  var defaultZoomSpecification: DronelinkCore.Kernel.PercentZoomSpecification? { get }
   var meteringMode: DronelinkCore.Kernel.CameraMeteringMode { get }
   var isAutoExposureLockEnabled: Swift.Bool { get }
   var aspectRatio: DronelinkCore.Kernel.CameraPhotoAspectRatio { get }
@@ -691,6 +702,10 @@ public protocol FuncExecutorMetadata {
   public func add(delegate: any DronelinkCore.FuncExecutorDelegate)
   public func remove(delegate: any DronelinkCore.FuncExecutorDelegate)
   public var unitSystem: DronelinkCore.Kernel.UnitSystem {
+    get
+    set
+  }
+  public var locale: Swift.String {
     get
     set
   }
@@ -1556,6 +1571,8 @@ public struct Kernel {
     case gimbalOrientation
     case gimbalVelocity
     case gimbalYawSimultaneousFollow
+    case cameraZoomPercent
+    case cameraZoomRatio
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
@@ -1929,6 +1946,16 @@ public struct Kernel {
     public func with(droneSerialNumber: Swift.String?) -> DronelinkCore.Kernel.CameraFocusCalibration
     public func asDict() -> [Swift.String : Any]
     public func encode(to encoder: any Swift.Encoder) throws
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct PercentZoomSpecification : Swift.Decodable {
+    public let currentZoom: Swift.Double
+    public let min: Swift.Double
+    public let max: Swift.Double
+    public let maxOptical: Swift.Double
+    public let step: Swift.Double
+    public init?(currentZoom: Swift.Double, min: Swift.Double, max: Swift.Double, maxOptical: Swift.Double, step: Swift.Double)
+    public func asDict() -> [Swift.String : Any]
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct Datetime : Swift.Decodable {
@@ -3091,6 +3118,26 @@ public struct Kernel {
     public var whiteBalancePreset: DronelinkCore.Kernel.CameraWhiteBalancePreset
     public init(from decoder: any Swift.Decoder) throws
   }
+  public struct ZoomPercentCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var channel: Swift.UInt
+    public var zoomPercent: Swift.Double
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct ZoomRatioCameraCommand : Swift.Decodable, DronelinkCore.KernelCameraCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var channel: Swift.UInt
+    public var zoomRatio: Swift.Double
+    public init(from decoder: any Swift.Decoder) throws
+  }
   public struct ModeGimbalCommand : Swift.Decodable, DronelinkCore.KernelGimbalCommand {
     public var type: DronelinkCore.Kernel.CommandType {
       get
@@ -3239,6 +3286,9 @@ extension CoreLocation.CLLocationCoordinate2D {
   public var asLocation: CoreLocation.CLLocation {
     get
   }
+}
+extension Swift.String {
+  public func localizeForLibrary(libraryBundle: Foundation.Bundle) -> Swift.String
 }
 extension Swift.String : Swift.Error {
   public var errorDescription: Swift.String? {
