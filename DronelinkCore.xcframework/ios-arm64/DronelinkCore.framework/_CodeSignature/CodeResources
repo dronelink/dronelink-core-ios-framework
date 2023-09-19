@@ -6,35 +6,35 @@
 	<dict>
 		<key>Base.lproj/Localizable.strings</key>
 		<data>
-		gxWmMhQtmc+0eo4dMAe51gRIG8k=
+		5EfPupDI+qkJf/MYF+4H9ybnNUA=
 		</data>
 		<key>Headers/DronelinkCore-Swift.h</key>
 		<data>
-		pIwwwIP2DixdyxnNaDkE3xRkhMY=
+		Jn2T+5xEpOR+rdaGp6/UvaVAMgo=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		rgwp9cZ6Ce1WOMMPu9gibeGzktY=
+		nZhaGwY50Jm2vksPQ8ITRxtxJWk=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.abi.json</key>
 		<data>
-		AItOnJiDBC+aqJFR3c/bHbo6QM8=
+		G98naFkB9G6vxvy3g8GFhZ27p9M=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
 		<data>
-		84877RG47ELqQAUTjPu2pvt3W64=
+		eZYPyK5ejswQgmu9zYw8MCAXmqM=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<data>
-		cxv3cxQXfNx+k5Pho9LzPAV9otk=
+		FWMCASJJ9pGajiPbc8kdCUw8zd4=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<data>
-		84877RG47ELqQAUTjPu2pvt3W64=
+		eZYPyK5ejswQgmu9zYw8MCAXmqM=
 		</data>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<data>
-		fgBBmxBsmVjRTMZPdkbRMSqyutU=
+		8xnwIbXqOvU66rvW10c8sBs7EoQ=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -44,7 +44,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			hV9jrAwWUSlGTT7q8rITl058scI=
+			YPyS8u8Fu7zYXPstI9InQNq0O9I=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -53,7 +53,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			gxWmMhQtmc+0eo4dMAe51gRIG8k=
+			5EfPupDI+qkJf/MYF+4H9ybnNUA=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -62,7 +62,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			YHWnpumL+CuwCD/5XQKOeUnwDFs=
+			yPeyCUMeHAC75ap3tqA2AmNlj6Y=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -71,7 +71,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			L1NRFkTm14o5M1Rab1LQpH6qUPE=
+			jvEWZc3v1O4y4H8wO868dfAotas=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -80,7 +80,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			9EZOj0TbJZjlby7qa5RjPDwimfg=
+			Bs00I7nJm6ExJN8XFUmXKzIuYwU=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -89,7 +89,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			S5t9VALyV88fN8sYTDtuLFvgi8I=
+			pgQuS+3SAUyZ8RjPHCheMFkhQmg=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -98,7 +98,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			fnr7CIW3ZSlJtfMBYHk/YSTBNHM=
+			F5Zuf/z484rVpZsoSiF0+tMNnck=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -107,7 +107,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			kb+GLYPcfmVkIBWhMTRKMUMkEqc=
+			O2NzL9OqGXN/QUQ/EjgA8mZ/Ofg=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -116,7 +116,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			7unWY0l+OFY0R4i5IdCKx/d5HIU=
+			pjgF79h6ec/FXVfTa0UUNA/oDR8=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -125,7 +125,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			Y6fqf29YBkHAhBFmZuEiFAvKvBU=
+			k1J/xXaC8TU6JCuH1pJe9b/mTiY=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -134,7 +134,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			dGdOVVs+LFT77jJSYHjY5mKla9E=
+			2tPzjJCIie8o7pGj9EuDX1Xfxnc=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -143,7 +143,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			IZaOAyvRotrABLBxwmCqPmAyay4=
+			Oxs7vPs9wVzaeCGJUJI3ZavopHk=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -152,7 +152,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			BHquDUmyK01nehGts+C+ZRRsYRc=
+			/IdhqR8tQRPJcq47cPJb0KkUB3k=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -164,49 +164,49 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			3CMbnUkIZXZ4YktenI7WXjHb/Z2DCdyHSNfAaTiyoIA=
+			aO8bTMO/CXUcZsGMp9zw14JsmGoeoK/rkL+LnGylKs8=
 			</data>
 		</dict>
 		<key>Headers/DronelinkCore-Swift.h</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			3/rj8qmDWYumfBRZQ4nsjHVSKkfzO6DlSLj/Xu4k6KI=
+			DLGQ0gS2cREYmmkgFE4WjJV7TdI7LUXAqk6xD2PlQ18=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.abi.json</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			94EEdHv9MTdaA21kcAM4KQ8W/WQDTdu6VUFk2KqhtWg=
+			ZvuFt1/Nk2F9qYn9PIeW7plJ+fe1oKc1mP8o2m8KzAY=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			w98+HjJ47ICaC4/jbo3XaMRmg/oF2vMvUgByCyIBEro=
+			zcUIqOfkLyJRt9B7KtDfqLYbMOQ26YDPUP/l1bO0JaU=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftdoc</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			k3XfcYaJsQAJQTM/+nwBdMV5THGH043c5NwvlMXDk6s=
+			mP/zR1STjLbBi02+Z9z6ON8exu/fNasSwapIRdWMGWc=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftinterface</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			w98+HjJ47ICaC4/jbo3XaMRmg/oF2vMvUgByCyIBEro=
+			zcUIqOfkLyJRt9B7KtDfqLYbMOQ26YDPUP/l1bO0JaU=
 			</data>
 		</dict>
 		<key>Modules/DronelinkCore.swiftmodule/arm64-apple-ios.swiftmodule</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			FqqSorbwL9ySlsaKZcsjId0vuExNCfAiPACUE/rJlT0=
+			u3SO7GTo9WN54DQFeU5sedtAVDr5WpNhf9KeY6A80A0=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
@@ -220,7 +220,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			cr01J4moSHg1sVciJ6hNU/aCkSljO93lDSGWGdCATik=
+			12d4W3tirFgAMm98qgpXKv+QYZYOyrR93Mv5v7zzjbk=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -229,7 +229,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			3CMbnUkIZXZ4YktenI7WXjHb/Z2DCdyHSNfAaTiyoIA=
+			aO8bTMO/CXUcZsGMp9zw14JsmGoeoK/rkL+LnGylKs8=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -238,7 +238,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			EVOqgCXdVVc9oOotF7Isa3ii/AAUCzW7TygjCmCFp7I=
+			jID7Hu5ovmrPd594TpuQAxKaIOS1iwGXIyUR4GR4P1w=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -247,7 +247,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			dyCfxTUZTB2cZ5mB6pufjTJbLIzvpA1hRKEf7PBTT50=
+			eVJLvZnsMiLSwzSUasS4rGJVgF8TY/GxhnNgPnnD7WI=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -256,7 +256,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			E95cDhqaIIs6IJyRV/3HLWlX+1fWEW7hMxJIvAU77Sc=
+			k9s2AsK7GYy+VghbGakAPGzbGKgP01UtMlHJU1oosII=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -265,7 +265,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			h7O5zH/8ck9ofGWkJKGyEv+ItrQhIBo+mvGqmevFcUk=
+			GpREN0Qb6Ohj6UdymKqITHnW+FszaoQG+8ZJU86NzKU=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -274,7 +274,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			YpCGt/1VYCU6VmxO9xvICvGcAidTLTHwyz/nUIdbN+c=
+			1StVRyRdnrOW9JmJiNjKqrrsmu9k5P1z7kt094vXz8o=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -283,7 +283,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			8OsUQfemjihRi089YWyrd/kShTijZVL07kqka2gsajo=
+			3XCd66kfUFyeagyvr2bfXpXbEMMi+zPt002p1Zjw12w=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -292,7 +292,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			3Kpq6/thCDxqGi3igiTDQcXxHwGcmaqJSaZhBuVbwuY=
+			un9h2JUBrB580fEdSuAmRoEHbxXGtmEAq99hfgcAOEs=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -301,7 +301,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			xxlErRa7dxU1GqeDV+cX2UH+U3jyogqZzL7eB5XgClQ=
+			Gdtpn53uRfMKgjIb83AOiCUhZbNmbW6kvppq1BNRkJs=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -310,7 +310,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			xSNKjaSzYDNBy8g3jYmhpH9nDNVySW97pFKCUcRHEY4=
+			VUYbZUPvx8YLH2sZrqWmEsgXPC6Lrs2ZNAHqEcUJX1Q=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -319,7 +319,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Qf15NkM12a59KjVKpMUIzZ1TbfZCCGW6netpBLWJcRU=
+			FmkEGARNqnoYFSjaFHFsI3MXvT6KSGP6/3QZmGR0oIY=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -328,7 +328,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			VA62SsThARRXuj6Zqrfv7Mkku2HzWAJb5uSXNGR1QZM=
+			y3GrctmPIuJIhpt4WUluzgVXyiQfHpjR5TBcNiq1r5U=
 			</data>
 			<key>optional</key>
 			<true/>

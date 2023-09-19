@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.8 (swiftlang-5.8.0.124.2 clang-1403.0.22.11.100)
+// swift-compiler-version: Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)
 // swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 // swift-module-flags-ignorable: -enable-bare-slash-regex
 import AVFoundation
@@ -27,6 +27,7 @@ public struct DatedValue<T> {
   public init(value: T, date: Foundation.Date = Date())
 }
 public protocol DronelinkDelegate {
+  func onDroneSessionManagerAdded(droneSessionManager: any DronelinkCore.DroneSessionManager)
   func onRegistered(error: Swift.String?)
   func onMissionLoaded(executor: DronelinkCore.MissionExecutor)
   func onMissionUnloaded(executor: DronelinkCore.MissionExecutor)
@@ -103,11 +104,11 @@ extension DronelinkCore.Dronelink {
     set
   }
   public func createCommand(json: Swift.String) -> (any DronelinkCore.KernelCommand)?
-  public func format(formatter: Swift.String, value: Any?, defaultValue: Swift.String = "", extraParams: [Any]? = nil) -> Swift.String
-  public func formatEnum(name: Swift.String, value: Swift.String?, defaultValue: Swift.String = "") -> Swift.String
+  public func format(formatter: Swift.String, value: Any?, defaultValue: Swift.String = "--", extraParams: [Any]? = nil) -> Swift.String
+  public func formatEnum(name: Swift.String, value: Swift.String?, defaultValue: Swift.String = "--") -> Swift.String
   public func enumDefinition(name: Swift.String) -> [Swift.String : Swift.String]?
   public func identify(device: DronelinkCore.Device)
-  public func identify(user: DronelinkCore.User)
+  public func identify(user: DronelinkCore.User?)
   public func identify(device: DronelinkCore.Device, user: DronelinkCore.User)
   public func announce(message: Swift.String)
   public func createAssetManifest(id: Swift.String? = nil, tags: [Swift.String]? = nil) throws -> DronelinkCore.AssetManifest
@@ -115,14 +116,14 @@ extension DronelinkCore.Dronelink {
     get
   }
   public func unload()
-  public func load(mission: Swift.String, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, detailsURL: Swift.String? = nil, error: ((Swift.String) -> ())? = nil) throws
-  public func load(id: Swift.String = UUID().uuidString, plan: Swift.String, verification: Swift.Bool = false, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, detailsURL: Swift.String? = nil, error: ((Swift.String) -> ())? = nil) throws
-  public func loadCopy(id: Swift.String = UUID().uuidString, mission: Swift.String, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, detailsURL: Swift.String? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(mission: Swift.String, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(id: Swift.String?, plan: Swift.String, verification: Swift.Bool = false, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func loadCopy(id: Swift.String?, mission: Swift.String, delegate: (any DronelinkCore.MissionExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMission()
-  public func load(id: Swift.String? = nil, _func: Swift.String, missionID: Swift.String = UUID().uuidString, modeID: Swift.String = UUID().uuidString, metadata: (any DronelinkCore.FuncExecutorMetadata)? = nil, delegate: (any DronelinkCore.FuncExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(id: Swift.String? = nil, _func: Swift.String, missionID: Swift.String = UUID().uuidString, modeID: Swift.String = UUID().uuidString, metadata: Any? = nil, delegate: (any DronelinkCore.FuncExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func readFuncUrls(_func: Swift.String, error: ((Swift.String) -> ())? = nil) throws -> [Swift.String]
   public func unloadFunc()
-  public func load(id: Swift.String = UUID().uuidString, metadata: (any DronelinkCore.ModeExecutorMetadata)? = nil, mode: Swift.String, delegate: (any DronelinkCore.ModeExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
+  public func load(id: Swift.String = UUID().uuidString, metadata: Any? = nil, mode: Swift.String, delegate: (any DronelinkCore.ModeExecutorDelegate)? = nil, error: ((Swift.String) -> ())? = nil) throws
   public func unloadMode()
   public func clearCameraFocusCalibrations(serialNumber: Swift.String? = nil) -> Swift.Int
   public func clear(cameraFocusCalibration: DronelinkCore.Kernel.CameraFocusCalibration)
@@ -176,14 +177,11 @@ public protocol ModeExecutorDelegate {
   func onModeExecuted(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement)
   func onModeDisengaged(executor: DronelinkCore.ModeExecutor, engagement: DronelinkCore.Executor.Engagement, reason: DronelinkCore.Kernel.Message)
 }
-public protocol ModeExecutorMetadata {
-  func toJSON() -> Swift.String?
-}
 @_hasMissingDesignatedInitializers public class ModeExecutor : DronelinkCore.Executor {
   override public var id: Swift.String {
     get
   }
-  final public let metadata: (any DronelinkCore.ModeExecutorMetadata)?
+  final public let metadata: Any?
   final public let descriptors: DronelinkCore.Kernel.Descriptors
   final public let userInterfaceSettings: DronelinkCore.Kernel.UserInterfaceSettings?
   public var engaging: Swift.Bool {
@@ -241,7 +239,6 @@ public class DroneOffsets {
 }
 @_hasMissingDesignatedInitializers public class Executor {
   final public let environmentKey: Swift.String?
-  final public let detailsURL: Swift.String?
   public var droneTakeoffAltitudeAlternate: Swift.Double?
   public var id: Swift.String {
     get
@@ -678,12 +675,12 @@ public protocol FuncExecutorDelegate {
   func onFuncInputsChanged(executor: DronelinkCore.FuncExecutor)
   func onFuncExecuted(executor: DronelinkCore.FuncExecutor)
 }
-public protocol FuncExecutorMetadata {
-  func toJSON() -> Swift.String?
+extension DronelinkCore.FuncExecutor {
+  public func localizeStringOne(toLocalize: Swift.String) -> Swift.String
 }
 @_hasMissingDesignatedInitializers public class FuncExecutor {
   final public let environmentKey: Swift.String?
-  final public let metadata: (any DronelinkCore.FuncExecutorMetadata)?
+  final public let metadata: Any?
   final public let missionID: Swift.String
   final public let modeID: Swift.String
   public var id: Swift.String {
@@ -1862,16 +1859,6 @@ public struct Kernel {
       get
     }
   }
-  public enum UserInterfaceDashboardFlavor : Swift.String, Swift.Decodable {
-    case any
-    case dronelink1
-    case dronelink2
-    public init?(rawValue: Swift.String)
-    public typealias RawValue = Swift.String
-    public var rawValue: Swift.String {
-      get
-    }
-  }
   public enum UserInterfaceMapTracking : Swift.String, Swift.Decodable {
     case noChange
     case none
@@ -1966,6 +1953,7 @@ public struct Kernel {
     public var description: Swift.String?
     public var tags: [Swift.String]?
     public init(name: Swift.String = "", description: Swift.String = "", tags: [Swift.String] = [])
+    public init(toCopy: DronelinkCore.Kernel.Descriptors)
     public var display: Swift.String {
       get
     }
@@ -2056,7 +2044,7 @@ public struct Kernel {
     public var imageUrl: Swift.String?
     public var variable: DronelinkCore.Kernel.Variable
     public var optional: Swift.Bool
-    public var enumValues: [Swift.String]?
+    public var enumValues: [DronelinkCore.Kernel.EnumValue]?
     public var dynamic: Swift.Bool
     public var extensions: DronelinkCore.Kernel.FuncInputExtensions?
     public func asDict(variableValue: Any?, variableValueRaw: Any?, variableValueNumberMeasurementTypeDisplay: Swift.String?) -> [Swift.String : Any]
@@ -2123,12 +2111,22 @@ public struct Kernel {
     public var userInterfaceSettings: DronelinkCore.Kernel.UserInterfaceSettings?
     public init(from decoder: any Swift.Decoder) throws
   }
+  public struct EnumValueObject : Swift.Decodable {
+    public var value: Swift.String
+    public var localized: Swift.String
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public enum EnumValue : Swift.Decodable {
+    case string(Swift.String), enumValueObject(DronelinkCore.Kernel.EnumValueObject)
+    public init(from decoder: any Swift.Decoder) throws
+    public func asDictOrString() -> Any
+  }
   public struct ModeInput : Swift.Decodable {
     public var descriptors: DronelinkCore.Kernel.Descriptors
     public var imageUrl: Swift.String?
     public var variable: DronelinkCore.Kernel.Variable
     public var optional: Swift.Bool
-    public var enumValues: [Swift.String]?
+    public var enumValues: [DronelinkCore.Kernel.EnumValue]?
     public var dynamic: Swift.Bool
     public init(from decoder: any Swift.Decoder) throws
   }
@@ -2220,7 +2218,6 @@ public struct Kernel {
     public var missionSummaryExtended: Swift.Bool?
     public var missionDetailsExpanded: Swift.Bool?
     public var mapTracking: DronelinkCore.Kernel.UserInterfaceMapTracking
-    public var dashboardFlavor: DronelinkCore.Kernel.UserInterfaceDashboardFlavor
     public var gimbalOrientationVisible: Swift.Bool?
     public func asDict() -> [Swift.String : Any]
     public init(from decoder: any Swift.Decoder) throws
@@ -3485,9 +3482,6 @@ extension DronelinkCore.Kernel.RTKServiceState : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.Equatable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.Hashable {}
 extension DronelinkCore.Kernel.UnitSystem : Swift.RawRepresentable {}
-extension DronelinkCore.Kernel.UserInterfaceDashboardFlavor : Swift.Equatable {}
-extension DronelinkCore.Kernel.UserInterfaceDashboardFlavor : Swift.Hashable {}
-extension DronelinkCore.Kernel.UserInterfaceDashboardFlavor : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.Equatable {}
 extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.Hashable {}
 extension DronelinkCore.Kernel.UserInterfaceMapTracking : Swift.RawRepresentable {}
