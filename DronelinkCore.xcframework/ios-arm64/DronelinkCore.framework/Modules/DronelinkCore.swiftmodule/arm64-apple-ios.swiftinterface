@@ -1,5 +1,5 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)
+// swift-compiler-version: Apple Swift version 5.9.2 (swiftlang-5.9.2.2.56 clang-1500.1.0.2.5)
 // swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name DronelinkCore
 // swift-module-flags-ignorable: -enable-bare-slash-regex
 import AVFoundation
@@ -10,6 +10,7 @@ import Swift
 import UIKit
 import _Concurrency
 import _StringProcessing
+import _SwiftConcurrencyShims
 import os
 public protocol CameraFile {
   var channel: Swift.UInt { get }
@@ -539,6 +540,7 @@ public protocol DroneStateAdapter {
   var batteryPercent: Swift.Double? { get }
   var lowBatteryThreshold: Swift.Double? { get }
   var flightTimeRemaining: Swift.Double? { get }
+  var obstacleAvoidanceSpecification: DronelinkCore.Kernel.DroneObstacleAvoidanceSpecification? { get }
   var obstacleDistance: Swift.Double? { get }
   var orientation: DronelinkCore.Kernel.Orientation3 { get }
   var gpsSatellites: Swift.Int? { get }
@@ -1499,6 +1501,9 @@ public struct Kernel {
     case droneMaxAltitude
     case droneMaxDistance
     case droneMaxDistanceLimitation
+    case droneObstacleAvoidanceBrakingDistance
+    case droneObstacleAvoidanceMode
+    case droneObstacleAvoidanceWarningDistance
     case droneOcuSyncChannel
     case droneOcuSyncChannelSelectionMode
     case droneOcuSyncFrequencyBand
@@ -1700,6 +1705,26 @@ public struct Kernel {
     case _5dot7ghz
     case _5dot8ghz
     case unknown
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum DroneObstacleAvoidanceDirection : Swift.String, Swift.Decodable {
+    case horizontal
+    case upward
+    case downward
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  public enum DroneObstacleAvoidanceMode : Swift.String, Swift.Decodable {
+    case brake
+    case avoid
+    case off
     public init?(rawValue: Swift.String)
     public typealias RawValue = Swift.String
     public var rawValue: Swift.String {
@@ -1933,6 +1958,15 @@ public struct Kernel {
     public func with(droneSerialNumber: Swift.String?) -> DronelinkCore.Kernel.CameraFocusCalibration
     public func asDict() -> [Swift.String : Any]
     public func encode(to encoder: any Swift.Encoder) throws
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct DroneObstacleAvoidanceSpecification : Swift.Decodable {
+    public let mode: DronelinkCore.Kernel.DroneObstacleAvoidanceMode
+    public let avoidanceEnabled: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Bool]
+    public let brakingDistances: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Double]
+    public let warningDistances: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Double]
+    public let returnHomeObstacleAvoidanceEnabled: Swift.Bool
+    public init(mode: DronelinkCore.Kernel.DroneObstacleAvoidanceMode, avoidanceEnabled: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Bool], brakingDistances: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Double], warningDistances: [DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Double], returnHomeObstacleAvoidanceEnabled: Swift.Bool)
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct PercentZoomSpecification : Swift.Decodable {
@@ -2460,6 +2494,35 @@ public struct Kernel {
     public var id: Swift.String
     public var retriesMax: Swift.Int?
     public var enabled: Swift.Bool
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct ObstacleAvoidanceBrakingDistanceDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var brakingDistance: Swift.Double
+    public var direction: DronelinkCore.Kernel.DroneObstacleAvoidanceDirection
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct ObstacleAvoidanceModeDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var obstacleAvoidanceMode: DronelinkCore.Kernel.DroneObstacleAvoidanceMode
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct ObstacleAvoidanceWarningDistanceDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneFlightAssistantCommand {
+    public var type: DronelinkCore.Kernel.CommandType {
+      get
+    }
+    public var id: Swift.String
+    public var retriesMax: Swift.Int?
+    public var warningDistance: Swift.Double
+    public var direction: DronelinkCore.Kernel.DroneObstacleAvoidanceDirection
     public init(from decoder: any Swift.Decoder) throws
   }
   public struct OcuSyncChannelDroneCommand : Swift.Decodable, DronelinkCore.KernelDroneCommand, DronelinkCore.KernelDroneOcuSyncCommand {
@@ -3449,6 +3512,12 @@ extension DronelinkCore.Kernel.DroneLightbridgeChannelSelectionMode : Swift.RawR
 extension DronelinkCore.Kernel.DroneLightbridgeFrequencyBand : Swift.Equatable {}
 extension DronelinkCore.Kernel.DroneLightbridgeFrequencyBand : Swift.Hashable {}
 extension DronelinkCore.Kernel.DroneLightbridgeFrequencyBand : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Equatable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.Hashable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceDirection : Swift.RawRepresentable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceMode : Swift.Equatable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceMode : Swift.Hashable {}
+extension DronelinkCore.Kernel.DroneObstacleAvoidanceMode : Swift.RawRepresentable {}
 extension DronelinkCore.Kernel.DroneOcuSyncChannelSelectionMode : Swift.Equatable {}
 extension DronelinkCore.Kernel.DroneOcuSyncChannelSelectionMode : Swift.Hashable {}
 extension DronelinkCore.Kernel.DroneOcuSyncChannelSelectionMode : Swift.RawRepresentable {}
